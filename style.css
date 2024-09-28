@@ -9,6 +9,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    overflow: hidden; /* Prevent body scroll */
 }
 
 .container {
@@ -21,6 +22,21 @@ body {
     max-width: 1000px;
     border-radius: 10px;
     background-color: var(--primary-color-light); /* Gender-based background for container */
+    transform: scale(0.95); /* Initial scaling down to fit better */
+    transform-origin: center center; /* Ensure scaling from the center */
+}
+
+/* Make the container dynamically scale based on the screen size */
+@media (max-height: 900px) {
+    .container {
+        transform: scale(0.85); /* Scale down for smaller heights */
+    }
+}
+
+@media (max-height: 800px) {
+    .container {
+        transform: scale(0.75); /* Scale further for smaller heights */
+    }
 }
 
 .input-group {
@@ -146,7 +162,7 @@ input:checked + .slider:before {
     width: 10px;
     height: 15px;
     background-color: rgb(68, 52, 52);
-    top: -10px; /* Adjust this value to move the indicator up/down */
+    top: 5px; /* Adjust this value to move the indicator up/down */
 }
 
 /* Graying out the hips slider for male */
