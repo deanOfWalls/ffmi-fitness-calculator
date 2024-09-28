@@ -2,7 +2,7 @@
 
 body {
     font-family: Arial, sans-serif;
-    background-color: var(--primary-color); /* Gender-based background */
+    background-color: var(--primary-color-light); /* Gender-based background */
     margin: 0;
     padding: 20px;
     display: flex;
@@ -21,7 +21,7 @@ body {
     width: 90%; /* Slightly reduced width */
     max-width: 1000px;
     border-radius: 10px;
-    background-color: var(--primary-color-light); /* Gender-based background for container */
+    background-color: #f7f7f7; /* Explicitly set the container background to off-white */
     transform: scale(0.95); /* Initial scaling down to fit better */
     transform-origin: center center; /* Ensure scaling from the center */
 }
@@ -146,23 +146,36 @@ input:checked + .slider:before {
     justify-content: space-between;
     font-size: 0.8em;
     position: absolute;
-    top: -20px; /* Move numbers inside the bar */
+    top: -20px; /* Keep numbers inside the bar */
     width: 100%;
 }
 
 .ffmi-labels-below {
     display: flex;
     justify-content: space-between;
-    font-size: 0.8em;
-    margin-top: 5px;
+    font-size: 0.9em;
+    margin-top: 5px; /* Adjusted margin to fit inside the container */
+    padding-left: 10px; /* Ensure padding to prevent text overflow */
+    padding-right: 10px;
+}
+
+.ffmi-labels-below span {
+    margin-top: 0px; /* Keep aligned with FFMI bar */
+    color: #000000c4;
+    font-weight: bold;
 }
 
 .ffmi-indicator {
     position: absolute;
     width: 10px;
     height: 15px;
-    background-color: rgb(68, 52, 52);
-    top: 5px; /* Adjust this value to move the indicator up/down */
+    background-color: rgba(0, 0, 0, 0.575);
+    top: 5px; /* Adjust to position the indicator */
+}
+
+/* Prevent text overflow outside container */
+.container {
+    overflow: hidden;
 }
 
 /* Graying out the hips slider for male */
@@ -172,26 +185,18 @@ input:checked + .slider:before {
 
 /* Dynamic color variables for gender themes */
 :root {
-    --primary-color: #007BFF; /* Default to blue (male) */
-    --primary-color-light: #e1eaff;
-    --slider-color: #007BFF; /* Slider color for male */
+    --primary-color: #4a90e2; /* Softer blue for male */
+    --primary-color-light: #dbeaff; /* Lighter blue background */
+    --slider-color: #4a90e2; /* Slider color for male */
 }
 
 body.female {
-    --primary-color: #ffb6c1;
-    --primary-color-light: #ffe3e9;
-    --slider-color: #ffb6c1; /* Slider color for female */
+    --primary-color: #ff8ab8; /* Softer pink for female */
+    --primary-color-light: #ffe4f0; /* Lighter pink background */
+    --slider-color: #ff8ab8; /* Slider color for female */
 }
 
 .grayed-out {
     opacity: 0.5;
     pointer-events: none;
-}
-
-.ffmi-indicator {
-    position: absolute;
-    width: 10px;
-    height: 15px;
-    background-color: rgba(0, 0, 0, 0.575);
-    top: 5px; /* Adjust this value to move the indicator up/down */
 }

@@ -63,8 +63,8 @@
             <!-- Hip Circumference -->
             <div class="input-group" id="hipsGroup">
                 <label for="hipsSlider">Hip Circumference (<span id="hipsUnitLabel">inches</span>):</label>
-                <input type="range" id="hipsSlider" min="20" max="60" value="40">
-                <span id="hipsValue">40</span>
+                <input type="range" id="hipsSlider" min="20" max="60" value="40" disabled>
+                <span id="hipsValue">0 in</span> <!-- Default to 0 and disabled for males -->
             </div>
         </div>
 
@@ -82,8 +82,9 @@
 
         <!-- Horizontal FFMI Scale -->
         <div class="ffmi-horizontal">
-            <div class="ffmi-scale">
-                <div class="ffmi-indicator" id="ffmiIndicator"></div>
+            <!-- Male FFMI Scale -->
+            <div class="ffmi-scale" id="ffmiScaleMale">
+                <div class="ffmi-indicator" id="ffmiIndicatorMale"></div>
                 <!-- Numbers inside and labels below -->
                 <div class="ffmi-numbers-inside">
                     <span>16</span>
@@ -102,14 +103,38 @@
                     <span>29</span>
                     <span>30</span>
                 </div>
+                <div class="ffmi-labels-below">
+                    <span>Skinny</span>
+                    <span>Average</span>
+                    <span>Fat</span>
+                    <span>Int. Gym</span>
+                    <span>Adv. Gym</span>
+                    <span>Bodybuilder</span>
+                </div>
             </div>
-            <div class="ffmi-labels-below">
-                <span>Below Average</span>
-                <span>Average</span>
-                <span>Above Average</span>
-                <span>Excellent</span>
-                <span>Superior</span>
-                <span>Unlikely</span>
+
+            <!-- Female FFMI Scale -->
+            <div class="ffmi-scale" id="ffmiScaleFemale" style="display: none;">
+                <div class="ffmi-indicator" id="ffmiIndicatorFemale"></div>
+                <!-- Numbers inside and labels below -->
+                <div class="ffmi-numbers-inside">
+                    <span>14</span>
+                    <span>15</span>
+                    <span>16</span>
+                    <span>17</span>
+                    <span>18</span>
+                    <span>19</span>
+                    <span>20</span>
+                    <span>21</span>
+                </div>
+                <div class="ffmi-labels-below">
+                    <span>Skinny</span>
+                    <span>Average</span>
+                    <span>Fat</span>
+                    <span>Int. Gym</span>
+                    <span>Adv. Gym</span>
+                    <span>Bodybuilder</span>
+                </div>
             </div>
         </div>
     </div>

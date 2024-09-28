@@ -7,10 +7,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const waistSlider = document.getElementById('waistSlider');
     const hipsSlider = document.getElementById('hipsSlider');
     const hipsGroup = document.getElementById('hipsGroup');
-    const ffmiIndicator = document.getElementById('ffmiIndicator');
+    const ffmiIndicator = document.getElementById('ffmiIndicatorMale'); // Default male
     const bodyElement = document.body;
 
-    // Labels for units
+    // Unit Labels
     const heightUnitLabel = document.getElementById('heightUnitLabel');
     const weightUnitLabel = document.getElementById('weightUnitLabel');
     const neckUnitLabel = document.getElementById('neckUnitLabel');
@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     updateUI();
     updateColors(genderToggle.checked);
-    updateUnitLabels(unitToggle.checked);
 
     // Gender Toggle (Male/Female)
     genderToggle.addEventListener('change', function () {
@@ -47,14 +46,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        updateColors(genderToggle.checked);
+        updateFFMIScale(genderToggle.checked); // Switch FFMI scale based on gender
+        updateColors(genderToggle.checked); // Update colors based on gender
         updateUI();
     });
 
     // Unit System Toggle (Standard/Metric)
     unitToggle.addEventListener('change', function () {
         updateUI(); // Update the display without moving sliders
-        updateUnitLabels(unitToggle.checked); // Update the unit labels
     });
 
     // Update input listeners
@@ -63,15 +62,6 @@ document.addEventListener('DOMContentLoaded', function () {
     neckSlider.addEventListener('input', updateUI);
     waistSlider.addEventListener('input', updateUI);
     hipsSlider.addEventListener('input', updateUI);
-
-    // Function to update unit labels dynamically based on the selected system
-    function updateUnitLabels(isMetric) {
-        heightUnitLabel.textContent = isMetric ? 'cm' : 'ft/in';
-        weightUnitLabel.textContent = isMetric ? 'kg' : 'lbs';
-        neckUnitLabel.textContent = isMetric ? 'cm' : 'inches';
-        waistUnitLabel.textContent = isMetric ? 'cm' : 'inches';
-        hipsUnitLabel.textContent = isMetric ? 'cm' : 'inches';
-    }
 
     // Update the UI calculations and input values
     function updateUI() {
@@ -83,6 +73,13 @@ document.addEventListener('DOMContentLoaded', function () {
         let neckInches = parseFloat(neckSlider.value);
         let waistInches = parseFloat(waistSlider.value);
         let hipsInches = isFemale ? parseFloat(hipsSlider.value) : 0;
+
+        // Toggle Unit Labels based on Metric/Standard
+        heightUnitLabel.textContent = isMetric ? 'cm' : 'ft/in';
+        weightUnitLabel.textContent = isMetric ? 'kg' : 'lbs';
+        neckUnitLabel.textContent = isMetric ? 'cm' : 'inches';
+        waistUnitLabel.textContent = isMetric ? 'cm' : 'inches';
+        hipsUnitLabel.textContent = isMetric ? 'cm' : 'inches';
 
         // Update height display with correct suffix (but don't change the slider position)
         if (isMetric) {
@@ -161,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Update FFMI indicator based on gender
     function updateFFMIIndicator(ffmi, isFemale) {
         let ffmiMin, ffmiMax;
-    
+
         // Adjust FFMI ranges based on gender
         if (isFemale) {
             ffmiMin = 14;
@@ -170,15 +167,31 @@ document.addEventListener('DOMContentLoaded', function () {
             ffmiMin = 16;
             ffmiMax = 30;
         }
-    
+
         // Place the indicator on the FFMI scale
-        let indicatorPosition = ((ffmi - ffmiMin) / (ffmiMax - ffmiMin)) * 100;
-    
-        // Ensure the indicator stays within the bounds (add padding to the edges)
-        indicatorPosition = Math.max(0, Math.min(indicatorPosition, 98.5)); // Limit to 2% and 98% for padding
-        ffmiIndicator.style.left = `${indicatorPosition}%`;
+        const indicatorPosition = ((ffmi - ffmiMin) / (ffmiMax - ffmiMin)) * 100;
+
+        const ffmiIndicator = isFemale ? document.getElementById('ffmiIndicatorFemale') : document.getElementById('ffmiIndicatorMale');
+
+        ffmiIndicator.style.left = `${Math.max(0, Math.min(indicatorPosition, 98.5))}%`; // Ensure padding
     }
+
+// Update the colors based on gender
+function updateColors(isFemale) {
+    const primaryColor = isFemale ? '#ff8ab8' : '#4a90e2'; // Softer pink for female, softer blue for male
+    const primaryColorLight = isFemale ? '#ffe4f0' : '#dbeaff'; // Lighter background shades
+    const sliderColor = primaryColor; // Matching slider color to primary
     
+    // Set CSS custom properties for primary and slider colors
+    document.documentElement.style.setProperty('--primary-color', primaryColor);
+    document.documentElement.style.setProperty('--primary-color-light', primaryColorLight);
+    document.documentElement.style.setProperty('--slider-color', sliderColor); // Update slider bar color
+    
+    // Set the entire page background color
+    bodyElement.style.backgroundColor = primaryColorLight; // Light background colors for male and female
+}
+
+
     // Determine BMI category based on correct ranges
     function getBMICategory(bmi) {
         if (bmi < 18.5) return "Underweight";
@@ -196,14 +209,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Update the colors based on gender
-    function updateColors(isFemale) {
-        const color = isFemale ? '#ffb6c1' : '#007BFF'; // Light pink for female, blue for male
-        document.documentElement.style.setProperty('--primary-color', color);
-        document.documentElement.style.setProperty('--slider-color', color); // Update slider bar color
-        bodyElement.style.backgroundColor = isFemale ? '#ffe3e9' : '#e1eaff'; // Light background colors
-
-        // Update the form container background to be off-white
-        document.querySelector('body > div').style.backgroundColor = '#f8f9fa'; // Set to off-white
+    // Toggle between FFMI scales based on gender
+    function updateFFMIScale(isFemale) {
+        document.getElementById('ffmiScaleMale').style.display = isFemale ? 'none' : 'block';
+        document.getElementById('ffmiScaleFemale').style.display = isFemale ? 'block' : 'none';
     }
 });
