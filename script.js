@@ -10,6 +10,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const ffmiIndicator = document.getElementById('ffmiIndicator');
     const bodyElement = document.body;
 
+    // Labels for units
+    const heightUnitLabel = document.getElementById('heightUnitLabel');
+    const weightUnitLabel = document.getElementById('weightUnitLabel');
+    const neckUnitLabel = document.getElementById('neckUnitLabel');
+    const waistUnitLabel = document.getElementById('waistUnitLabel');
+    const hipsUnitLabel = document.getElementById('hipsUnitLabel');
+
     // Set default to Standard system and Male (male by default)
     unitToggle.checked = false; // Default to standard (US system)
     genderToggle.checked = false; // Default to Male
@@ -24,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     updateUI();
     updateColors(genderToggle.checked);
+    updateUnitLabels(unitToggle.checked);
 
     // Gender Toggle (Male/Female)
     genderToggle.addEventListener('change', function () {
@@ -46,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Unit System Toggle (Standard/Metric)
     unitToggle.addEventListener('change', function () {
         updateUI(); // Update the display without moving sliders
+        updateUnitLabels(unitToggle.checked); // Update the unit labels
     });
 
     // Update input listeners
@@ -54,6 +63,15 @@ document.addEventListener('DOMContentLoaded', function () {
     neckSlider.addEventListener('input', updateUI);
     waistSlider.addEventListener('input', updateUI);
     hipsSlider.addEventListener('input', updateUI);
+
+    // Function to update unit labels dynamically based on the selected system
+    function updateUnitLabels(isMetric) {
+        heightUnitLabel.textContent = isMetric ? 'cm' : 'ft/in';
+        weightUnitLabel.textContent = isMetric ? 'kg' : 'lbs';
+        neckUnitLabel.textContent = isMetric ? 'cm' : 'inches';
+        waistUnitLabel.textContent = isMetric ? 'cm' : 'inches';
+        hipsUnitLabel.textContent = isMetric ? 'cm' : 'inches';
+    }
 
     // Update the UI calculations and input values
     function updateUI() {
@@ -143,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Update FFMI indicator based on gender
     function updateFFMIIndicator(ffmi, isFemale) {
         let ffmiMin, ffmiMax;
-        
+    
         // Adjust FFMI ranges based on gender
         if (isFemale) {
             ffmiMin = 14;
@@ -152,12 +170,15 @@ document.addEventListener('DOMContentLoaded', function () {
             ffmiMin = 16;
             ffmiMax = 30;
         }
-        
+    
         // Place the indicator on the FFMI scale
-        const indicatorPosition = ((ffmi - ffmiMin) / (ffmiMax - ffmiMin)) * 100;
-        ffmiIndicator.style.left = `${Math.max(0, Math.min(indicatorPosition, 100))}%`;
+        let indicatorPosition = ((ffmi - ffmiMin) / (ffmiMax - ffmiMin)) * 100;
+    
+        // Ensure the indicator stays within the bounds (add padding to the edges)
+        indicatorPosition = Math.max(0, Math.min(indicatorPosition, 98.5)); // Limit to 2% and 98% for padding
+        ffmiIndicator.style.left = `${indicatorPosition}%`;
     }
-
+    
     // Determine BMI category based on correct ranges
     function getBMICategory(bmi) {
         if (bmi < 18.5) return "Underweight";

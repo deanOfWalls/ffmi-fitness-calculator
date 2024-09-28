@@ -192,6 +192,6 @@ body.female {
     position: absolute;
     width: 10px;
     height: 15px;
-    background-color: rgb(68, 52, 52);
+    background-color: rgba(0, 0, 0, 0.575);
     top: 5px; /* Adjust this value to move the indicator up/down */
 }
