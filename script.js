@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const ffmiIndicator = isFemale ? document.getElementById('ffmiIndicatorFemale') : document.getElementById('ffmiIndicatorMale');
 
-        ffmiIndicator.style.left = `${Math.max(0, Math.min(indicatorPosition, 98.5))}%`; // Ensure padding
+        ffmiIndicator.style.left = `${Math.max(0, Math.min(indicatorPosition, 99))}%`; // Ensure padding
     }
 
 // Update the colors based on gender
@@ -196,7 +196,7 @@ function updateColors(isFemale) {
     function getBMICategory(bmi) {
         if (bmi < 18.5) return "Underweight";
         if (bmi >= 18.5 && bmi < 25) return "Normal";
-        if (bmi >= 25 && bmi < 29.9) return "Overweight";
+        if (bmi >= 25 && bmi < 30) return "Overweight";
         if (bmi >= 30) return "Obese";
     }
 

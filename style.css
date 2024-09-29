@@ -136,10 +136,19 @@ input:checked + .slider:before {
     position: relative;
     height: 20px;
     width: 100%;
-    background: linear-gradient(to right, red, orange, yellow, green, blue, purple);
+    background: linear-gradient(to right, 
+        rgba(211, 211, 211, 0.8),   /* Light Gray for Skinny */
+        rgba(0, 128, 128, 0.8),     /* Teal for Average */
+        rgba(255, 165, 0, 0.8),     /* Orange for Fat */
+        rgba(218, 165, 32, 0.8),    /* Dark Yellow for Int. Gym */
+        rgba(220, 20, 60, 0.8),     /* Crimson Red for Adv. Gym */
+        rgba(0, 0, 139, 0.8)        /* Dark Blue for Bodybuilder */
+    );
     border-radius: 5px;
     margin-top: 10px;
 }
+
+
 
 .ffmi-numbers-inside {
     display: flex;
@@ -160,18 +169,23 @@ input:checked + .slider:before {
 }
 
 .ffmi-labels-below span {
-    margin-top: 0px; /* Keep aligned with FFMI bar */
-    color: #000000c4;
+    color: white; /* Use white text for better contrast */
     font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6); /* Light text shadow to improve readability */
 }
 
 .ffmi-indicator {
     position: absolute;
-    width: 10px;
-    height: 15px;
-    background-color: rgba(0, 0, 0, 0.575);
-    top: 5px; /* Adjust to position the indicator */
+    width: 12px; 
+    height: 25px; 
+    background-color: rgba(255, 255, 255, 0.6); /* Lower opacity for better visibility behind */
+    border: 2px solid rgba(0, 0, 0, 0.8); 
+    border-radius: 5px; 
+    top: -5px; /* Align it just above the text labels */
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5); 
 }
+
+
 
 /* Prevent text overflow outside container */
 .container {
