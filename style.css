@@ -43,6 +43,14 @@ body {
     margin-bottom: 10px;
 }
 
+h1 {
+    text-align: center;
+    margin: 0 0 15px 0;
+    font-size: 1.5em;
+    color: #333;
+    font-weight: bold;
+}
+
 label {
     font-weight: bold;
     font-size: 0.9em; /* Slightly smaller text */
@@ -150,13 +158,24 @@ input:checked + .slider:before {
 
 
 
-.ffmi-numbers-inside {
+.ffmi-horizontal {
+    margin-bottom: 10px; /* Add margin to ensure numbers aren't cut off */
+}
+
+.ffmi-numbers-below {
     display: flex;
     justify-content: space-between;
     font-size: 0.8em;
-    position: absolute;
-    top: -20px; /* Keep numbers inside the bar */
+    margin-top: 8px;
+    margin-bottom: 5px;
     width: 100%;
+    color: #333;
+    padding: 0 2px; /* Small padding to prevent edge numbers from being cut off */
+}
+
+.ffmi-numbers-below span {
+    min-width: 20px; /* Ensure numbers have enough space */
+    text-align: center;
 }
 
 .ffmi-labels-below {
@@ -189,7 +208,8 @@ input:checked + .slider:before {
 
 /* Prevent text overflow outside container */
 .container {
-    overflow: hidden;
+    overflow: visible;
+    padding-bottom: 20px; /* Add extra padding for numbers below FFMI scale */
 }
 
 /* Graying out the hips slider for male */
@@ -213,4 +233,99 @@ body.female {
 .grayed-out {
     opacity: 0.5;
     pointer-events: none;
+}
+
+/* Activity Level Selector */
+select {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid var(--primary-color);
+    border-radius: 5px;
+    background-color: white;
+    font-size: 0.9em;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+}
+
+select:hover {
+    border-color: var(--primary-color);
+}
+
+/* Results sections */
+.ffmi-results, .tdee-results {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ffmi-results h2, .tdee-results h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.result-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.result-group p {
+    margin: 0;
+    font-size: 0.9em;
+}
+
+.result-group p {
+    position: relative;
+}
+
+.result-group p strong.tooltip-trigger {
+    cursor: help;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+    position: relative;
+}
+
+.result-group p strong.tooltip-trigger .tooltip-text {
+    display: none;
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 0;
+    padding: 8px 12px;
+    background-color: #333;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: normal;
+    white-space: normal;
+    width: 250px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    line-height: 1.4;
+}
+
+.result-group p strong.tooltip-trigger .tooltip-text::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 10px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid #333;
+}
+
+.result-group p strong.tooltip-trigger:hover .tooltip-text {
+    display: block;
 }

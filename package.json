@@ -1,0 +1,24 @@
+{
+  "name": "ffmi-fitness-calculator",
+  "version": "1.0.0",
+  "description": "App can be viewed/used at: https://deanofwalls.github.io/ffmi-fitness-calculator/",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deanOfWalls/ffmi-fitness-calculator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/deanOfWalls/ffmi-fitness-calculator/issues"
+  },
+  "homepage": "https://github.com/deanOfWalls/ffmi-fitness-calculator#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
+  }
+}

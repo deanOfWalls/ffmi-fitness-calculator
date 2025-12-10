@@ -17,13 +17,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const waistUnitLabel = document.getElementById('waistUnitLabel');
     const hipsUnitLabel = document.getElementById('hipsUnitLabel');
 
+    // Activity Level Selector - must be defined before updateUI() is called
+    const activityLevel = document.getElementById('activityLevel');
+
     // Set default to Standard system and Male (male by default)
     unitToggle.checked = false; // Default to standard (US system)
     genderToggle.checked = false; // Default to Male
 
     // Set default hip value to 0 when male is selected
     hipsSlider.value = 0;
-    document.getElementById('hipsValue').textContent = '0 in';
+    document.getElementById('hipsValue').textContent = '0 in'; // Will be updated by updateUI()
 
     // Gray out hip slider by default since male is selected
     hipsSlider.disabled = true;
@@ -40,9 +43,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Set default hip value to 0 if male is selected
         if (!genderToggle.checked) {
             hipsSlider.value = 0;
-            document.getElementById('hipsValue').textContent = '0 in'; // Default for standard
-            if (unitToggle.checked) {
-                document.getElementById('hipsValue').textContent = '0 cm'; // Default for metric
+            const isMetric = unitToggle.checked;
+            document.getElementById('hipsValue').textContent = isMetric ? '0 cm' : '0 in';
+        } else {
+            // When switching to female, set a reasonable default if hips is 0
+            if (parseFloat(hipsSlider.value) === 0) {
+                hipsSlider.value = 40; // Default hip measurement
             }
         }
 
@@ -55,6 +61,9 @@ document.addEventListener('DOMContentLoaded', function () {
     unitToggle.addEventListener('change', function () {
         updateUI(); // Update the display without moving sliders
     });
+
+    // Activity Level Selector - already defined above
+    activityLevel.addEventListener('change', updateUI);
 
     // Update input listeners
     heightSlider.addEventListener('input', updateUI);
@@ -119,16 +128,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('hipsValue').textContent = `${hipsSlider.value} in`;
             }
         } else {
-            document.getElementById('hipsValue').textContent = '0 in'; // Set hip value to 0 when male is selected
+            // Set hip value to 0 when male is selected, respecting unit system
+            document.getElementById('hipsValue').textContent = isMetric ? '0 cm' : '0 in';
         }
 
         // BMI, FFMI, and other calculations
-        calculateBodyMetrics(isMetric, heightInches, weightLbs, neckInches, waistInches, hipsInches, isFemale);
+        const activityMultiplier = parseFloat(activityLevel.value);
+        calculateBodyMetrics(isMetric, heightInches, weightLbs, neckInches, waistInches, hipsInches, isFemale, activityMultiplier);
     }
 
-    function calculateBodyMetrics(isMetric, heightInches, weightLbs, neckInches, waistInches, hipsInches, isFemale) {
+    function calculateBodyMetrics(isMetric, heightInches, weightLbs, neckInches, waistInches, hipsInches, isFemale, activityMultiplier) {
         // Convert height/weight to metric if necessary
         const heightMeters = heightInches * 0.0254;
+        const heightCm = heightInches * 2.54;
         const weightKg = weightLbs / 2.2;
 
         // BMI Calculation
@@ -145,11 +157,28 @@ document.addEventListener('DOMContentLoaded', function () {
         const ffmi = (fatFreeMass / 2.2) / Math.pow(heightMeters, 2);
         const normalizedFfmi = ffmi + (6.3 * (1.8 - heightMeters));
 
-        // Update calculated values
-        document.getElementById('fatFreeMass').textContent = fatFreeMass.toFixed(2);
+        // Update calculated values with proper units
+        const fatFreeMassDisplay = isMetric ? (fatFreeMass / 2.2).toFixed(2) : fatFreeMass.toFixed(2);
+        const fatFreeMassUnit = isMetric ? 'kg' : 'lbs';
+        document.getElementById('fatFreeMass').textContent = fatFreeMassDisplay;
+        document.getElementById('fatFreeMassUnit').textContent = fatFreeMassUnit;
         document.getElementById('bodyFatCalc').textContent = `${bodyFatPercentage}%`; // Ensure only one %
         document.getElementById('ffmi').textContent = ffmi.toFixed(2);
         document.getElementById('adjustedFfmi').textContent = normalizedFfmi.toFixed(2);
+
+        // Calculate BMR and TDEE
+        const bmr = calculateBMR(isFemale, weightKg, heightCm);
+        const tdee = bmr * activityMultiplier;
+        
+        // Calculate weight loss calories (1 lb/week = 500 cal deficit, 2 lb/week = 1000 cal deficit)
+        const weightLoss1lb = Math.max(0, Math.round(tdee - 500));
+        const weightLoss2lb = Math.max(0, Math.round(tdee - 1000));
+
+        // Update TDEE and weight loss values
+        document.getElementById('bmr').textContent = Math.round(bmr);
+        document.getElementById('tdee').textContent = Math.round(tdee);
+        document.getElementById('weightLoss1lb').textContent = weightLoss1lb;
+        document.getElementById('weightLoss2lb').textContent = weightLoss2lb;
 
         // Update FFMI indicator (ensure it is overlayed on the color bar)
         updateFFMIIndicator(ffmi, isFemale);
@@ -203,9 +232,21 @@ function updateColors(isFemale) {
     // Calculate body fat percentage (U.S. Navy method)
     function calculateBodyFatPercentage(isFemale, waist, neck, hips, height) {
         if (isFemale) {
-            return 163.205 * Math.log10(waist + hips - neck) - 97.684 * Math.log10(height) - 78.387;
+            // Ensure hips is valid (not 0) for female calculation
+            const hipsValue = hips > 0 ? hips : 40; // Default to 40 if hips is 0 or invalid
+            const waistHipsNeck = waist + hipsValue - neck;
+            // Ensure the value is positive for log10 calculation
+            if (waistHipsNeck <= 0 || height <= 0) {
+                return 0; // Return 0 if calculation would be invalid
+            }
+            return 163.205 * Math.log10(waistHipsNeck) - 97.684 * Math.log10(height) - 78.387;
         } else {
-            return 86.010 * Math.log10(waist - neck) - 70.041 * Math.log10(height) + 36.76;
+            const waistNeck = waist - neck;
+            // Ensure the value is positive for log10 calculation
+            if (waistNeck <= 0 || height <= 0) {
+                return 0; // Return 0 if calculation would be invalid
+            }
+            return 86.010 * Math.log10(waistNeck) - 70.041 * Math.log10(height) + 36.76;
         }
     }
 
@@ -214,4 +255,25 @@ function updateColors(isFemale) {
         document.getElementById('ffmiScaleMale').style.display = isFemale ? 'none' : 'block';
         document.getElementById('ffmiScaleFemale').style.display = isFemale ? 'block' : 'none';
     }
+
+    // Calculate BMR using Mifflin-St Jeor Equation
+    // BMR = 10 * weight(kg) + 6.25 * height(cm) - 5 * age + gender_factor
+    // For simplicity, we'll use age 30 as default (most common use case)
+    // Male: +5, Female: -161
+    function calculateBMR(isFemale, weightKg, heightCm) {
+        const age = 30; // Default age, can be made configurable later
+        if (isFemale) {
+            return 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
+        } else {
+            return 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
+        }
+    }
+
+    // Initialize tooltips
+    document.querySelectorAll('.tooltip-trigger').forEach(function(trigger) {
+        const tooltipText = trigger.querySelector('.tooltip-text');
+        if (tooltipText) {
+            tooltipText.textContent = trigger.getAttribute('data-tooltip');
+        }
+    });
 });

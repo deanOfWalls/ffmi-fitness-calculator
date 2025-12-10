@@ -9,11 +9,13 @@
 <body>
     <div class="container">
         <div class="inputs">
+            <h1>All-in-One Fitness Calculator</h1>
+            
             <!-- Gender toggle -->
             <div class="input-group">
                 <span>Male</span>
                 <label class="switch">
-                    <input type="checkbox" id="genderToggle" checked> <!-- Default to Male -->
+                    <input type="checkbox" id="genderToggle"> <!-- Default to Male -->
                     <span class="slider round"></span>
                 </label>
                 <span>Female</span>
@@ -28,9 +30,6 @@
                 </label>
                 <span>Metric</span>
             </div>
-
-            <!-- Body Fat Calculation -->
-            <h2>Body Fat Calculation</h2>
 
             <!-- Height Slider -->
             <div class="input-group">
@@ -66,17 +65,40 @@
                 <input type="range" id="hipsSlider" min="20" max="60" value="40" disabled>
                 <span id="hipsValue">0 in</span> <!-- Default to 0 and disabled for males -->
             </div>
+
+            <!-- Activity Level -->
+            <div class="input-group">
+                <label for="activityLevel">Activity Level:</label>
+                <select id="activityLevel">
+                    <option value="1.2">Sedentary (little/no exercise)</option>
+                    <option value="1.375">Lightly Active (light exercise 1-3 days/week)</option>
+                    <option value="1.55" selected>Moderately Active (moderate exercise 3-5 days/week)</option>
+                    <option value="1.725">Very Active (hard exercise 6-7 days/week)</option>
+                    <option value="1.9">Extra Active (very hard exercise, physical job)</option>
+                </select>
+            </div>
         </div>
 
         <!-- FFMI, BMI, Body Fat Results -->
         <div class="ffmi-results">
             <h2>FFMI, BMI, and Body Fat</h2>
             <div class="result-group">
-                <p><strong>Fat Free Mass:</strong> <span id="fatFreeMass">0</span> lbs</p>
-                <p><strong>Body Fat:</strong> <span id="bodyFatCalc">0</span></p>
-                <p><strong>BMI:</strong> <span id="bmi">0</span> <span id="bmiCategory"></span></p>
-                <p><strong>FFMI:</strong> <span id="ffmi">0</span></p>
-                <p><strong>Normalized FFMI:</strong> <span id="adjustedFfmi">0</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Fat Free Mass (FFM): The total mass of all non-fat components in your body, including muscle, bone, organs, and water. This represents your lean body mass.">Fat Free Mass:<span class="tooltip-text"></span></strong> <span id="fatFreeMass">0</span> <span id="fatFreeMassUnit">lbs</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Body Fat Percentage: The proportion of your total body weight that is composed of fat tissue. Calculated using the U.S. Navy method based on body measurements.">Body Fat:<span class="tooltip-text"></span></strong> <span id="bodyFatCalc">0</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Body Mass Index (BMI): A measure of body fat based on height and weight. Categories: Underweight (<18.5), Normal (18.5-24.9), Overweight (25-29.9), Obese (≥30).">BMI:<span class="tooltip-text"></span></strong> <span id="bmi">0</span> <span id="bmiCategory"></span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Fat-Free Mass Index (FFMI): A measure of muscle mass relative to height, calculated as fat-free mass divided by height squared. Higher values indicate more muscle mass.">FFMI:<span class="tooltip-text"></span></strong> <span id="ffmi">0</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Normalized FFMI: FFMI adjusted for height to allow better comparison across different body sizes. This accounts for the fact that taller individuals naturally have higher FFMI values.">Normalized FFMI:<span class="tooltip-text"></span></strong> <span id="adjustedFfmi">0</span></p>
+            </div>
+        </div>
+
+        <!-- TDEE and Calorie Results -->
+        <div class="tdee-results">
+            <h2>TDEE and Weight Loss Calories</h2>
+            <div class="result-group">
+                <p><strong class="tooltip-trigger" data-tooltip="Basal Metabolic Rate (BMR): The number of calories your body burns at rest to maintain basic physiological functions like breathing, circulation, and cell production. Calculated using the Mifflin-St Jeor equation.">BMR:<span class="tooltip-text"></span></strong> <span id="bmr">0</span> <span id="bmrUnit">calories/day</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Total Daily Energy Expenditure (TDEE): The total number of calories you burn per day, including BMR plus calories burned through physical activity. This is your maintenance calorie level.">TDEE:<span class="tooltip-text"></span></strong> <span id="tdee">0</span> <span id="tdeeUnit">calories/day</span></p>
+                <p><strong>Weight Loss (1 lb/week):</strong> <span id="weightLoss1lb">0</span> <span id="weightLoss1lbUnit">calories/day</span></p>
+                <p><strong>Weight Loss (2 lb/week):</strong> <span id="weightLoss2lb">0</span> <span id="weightLoss2lbUnit">calories/day</span></p>
             </div>
         </div>
 
@@ -85,8 +107,16 @@
             <!-- Male FFMI Scale -->
             <div class="ffmi-scale" id="ffmiScaleMale">
                 <div class="ffmi-indicator" id="ffmiIndicatorMale"></div>
-                <!-- Numbers inside and labels below -->
-                <div class="ffmi-numbers-inside">
+                <div class="ffmi-labels-below">
+                    <span>Skinny</span>
+                    <span>Average</span>
+                    <span>Fat</span>
+                    <span>Int. Gymgoer</span>
+                    <span>Adv. Gymgoer</span>
+                    <span>Bodybuilder</span>
+                </div>
+                <!-- Numbers below the bar -->
+                <div class="ffmi-numbers-below">
                     <span>16</span>
                     <span>17</span>
                     <span>18</span>
@@ -103,21 +133,21 @@
                     <span>29</span>
                     <span>30</span>
                 </div>
-                <div class="ffmi-labels-below">
-                    <span>Skinny</span>
-                    <span>Average</span>
-                    <span>Fat</span>
-                    <span>Int. Gymgoer</span>
-                    <span>Adv. Gymgoer</span>
-                    <span>Bodybuilder</span>
-                </div>
             </div>
 
             <!-- Female FFMI Scale -->
             <div class="ffmi-scale" id="ffmiScaleFemale" style="display: none;">
                 <div class="ffmi-indicator" id="ffmiIndicatorFemale"></div>
-                <!-- Numbers inside and labels below -->
-                <div class="ffmi-numbers-inside">
+                <div class="ffmi-labels-below">
+                    <span>Skinny</span>
+                    <span>Average</span>
+                    <span>Fat</span>
+                    <span>Int. Gym</span>
+                    <span>Adv. Gym</span>
+                    <span>Bodybuilder</span>
+                </div>
+                <!-- Numbers below the bar -->
+                <div class="ffmi-numbers-below">
                     <span>14</span>
                     <span>15</span>
                     <span>16</span>
@@ -126,14 +156,6 @@
                     <span>19</span>
                     <span>20</span>
                     <span>21</span>
-                </div>
-                <div class="ffmi-labels-below">
-                    <span>Skinny</span>
-                    <span>Average</span>
-                    <span>Fat</span>
-                    <span>Int. Gym</span>
-                    <span>Adv. Gym</span>
-                    <span>Bodybuilder</span>
                 </div>
             </div>
         </div>
