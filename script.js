@@ -102,10 +102,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Update weight display with correct suffix (but don't change the slider position)
         if (isMetric) {
-            const weightKg = (weightLbs / 2.2).toFixed(1); // Convert lbs to kg
-            document.getElementById('weightValue').textContent = `${weightKg} kg`;
+            const weightKg = (weightLbs / 2.2);
+            // Round to nearest 0.5 for display
+            const weightKgRounded = Math.round(weightKg * 2) / 2;
+            document.getElementById('weightValue').textContent = `${weightKgRounded.toFixed(1)} kg`;
         } else {
-            document.getElementById('weightValue').textContent = `${weightSlider.value} lbs`;
+            // Round to nearest 0.5 for display
+            const weightLbsRounded = Math.round(weightLbs * 2) / 2;
+            document.getElementById('weightValue').textContent = `${weightLbsRounded.toFixed(1)} lbs`;
         }
 
         // Update neck and waist display with correct suffix (but don't change the slider position)
@@ -144,25 +148,29 @@ document.addEventListener('DOMContentLoaded', function () {
         const weightKg = weightLbs / 2.2;
 
         // BMI Calculation
+        // Standard BMI formula: weight(kg) / height(m)² or weight(lbs) × 703 / height(in)²
         const bmiValue = isMetric
-            ? (weightKg / Math.pow(heightMeters, 2)).toFixed(2)
-            : ((weightLbs * 703) / Math.pow(heightInches, 2)).toFixed(2);
+            ? (weightKg / Math.pow(heightMeters, 2))
+            : ((weightLbs * 703) / Math.pow(heightInches, 2));
         
-        document.getElementById('bmi').textContent = bmiValue;
+        document.getElementById('bmi').textContent = bmiValue.toFixed(2);
         document.getElementById('bmiCategory').textContent = `(${getBMICategory(bmiValue)})`;
 
-        // Body Fat Calculation
-        const bodyFatPercentage = Math.round(calculateBodyFatPercentage(isFemale, waistInches, neckInches, hipsInches, heightInches)); // Round to whole percentage
+        // Body Fat Calculation - U.S. Navy method
+        const bodyFatPercentageRaw = calculateBodyFatPercentage(isFemale, waistInches, neckInches, hipsInches, heightInches);
+        // Clamp body fat percentage to reasonable range (0-70% to handle edge cases)
+        const bodyFatPercentageClamped = Math.max(0, Math.min(70, bodyFatPercentageRaw));
+        const bodyFatPercentage = Math.round(bodyFatPercentageClamped); // Round to whole percentage
         const fatFreeMass = weightLbs * (1 - (bodyFatPercentage / 100));
         const ffmi = (fatFreeMass / 2.2) / Math.pow(heightMeters, 2);
         const normalizedFfmi = ffmi + (6.3 * (1.8 - heightMeters));
 
         // Update calculated values with proper units
-        const fatFreeMassDisplay = isMetric ? (fatFreeMass / 2.2).toFixed(2) : fatFreeMass.toFixed(2);
+        const fatFreeMassDisplay = isMetric ? (fatFreeMass / 2.2) : fatFreeMass;
         const fatFreeMassUnit = isMetric ? 'kg' : 'lbs';
-        document.getElementById('fatFreeMass').textContent = fatFreeMassDisplay;
+        document.getElementById('fatFreeMass').textContent = fatFreeMassDisplay.toFixed(2);
         document.getElementById('fatFreeMassUnit').textContent = fatFreeMassUnit;
-        document.getElementById('bodyFatCalc').textContent = `${bodyFatPercentage}%`; // Ensure only one %
+        document.getElementById('bodyFatCalc').textContent = `${bodyFatPercentage}%`;
         document.getElementById('ffmi').textContent = ffmi.toFixed(2);
         document.getElementById('adjustedFfmi').textContent = normalizedFfmi.toFixed(2);
 
@@ -230,6 +238,9 @@ function updateColors(isFemale) {
     }
 
     // Calculate body fat percentage (U.S. Navy method)
+    // Formulas verified from official U.S. Navy body composition assessment
+    // Male: BF% = 86.010 × log10(waist - neck) - 70.041 × log10(height) + 36.76
+    // Female: BF% = 163.205 × log10(waist + hips - neck) - 97.684 × log10(height) - 78.387
     function calculateBodyFatPercentage(isFemale, waist, neck, hips, height) {
         if (isFemale) {
             // Ensure hips is valid (not 0) for female calculation
@@ -239,14 +250,18 @@ function updateColors(isFemale) {
             if (waistHipsNeck <= 0 || height <= 0) {
                 return 0; // Return 0 if calculation would be invalid
             }
-            return 163.205 * Math.log10(waistHipsNeck) - 97.684 * Math.log10(height) - 78.387;
+            // U.S. Navy formula for females (all measurements in inches)
+            const bf = 163.205 * Math.log10(waistHipsNeck) - 97.684 * Math.log10(height) - 78.387;
+            return bf;
         } else {
             const waistNeck = waist - neck;
             // Ensure the value is positive for log10 calculation
             if (waistNeck <= 0 || height <= 0) {
                 return 0; // Return 0 if calculation would be invalid
             }
-            return 86.010 * Math.log10(waistNeck) - 70.041 * Math.log10(height) + 36.76;
+            // U.S. Navy formula for males (all measurements in inches)
+            const bf = 86.010 * Math.log10(waistNeck) - 70.041 * Math.log10(height) + 36.76;
+            return bf;
         }
     }
 
