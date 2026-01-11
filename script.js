@@ -20,17 +20,62 @@ document.addEventListener('DOMContentLoaded', function () {
     // Activity Level Selector - must be defined before updateUI() is called
     const activityLevel = document.getElementById('activityLevel');
 
-    // Set default to Standard system and Male (male by default)
-    unitToggle.checked = false; // Default to standard (US system)
-    genderToggle.checked = false; // Default to Male
+    // Load saved values from localStorage or use defaults
+    function loadSavedValues() {
+        const saved = {
+            gender: localStorage.getItem('ffmi_gender'),
+            unit: localStorage.getItem('ffmi_unit'),
+            height: localStorage.getItem('ffmi_height'),
+            weight: localStorage.getItem('ffmi_weight'),
+            neck: localStorage.getItem('ffmi_neck'),
+            waist: localStorage.getItem('ffmi_waist'),
+            hips: localStorage.getItem('ffmi_hips'),
+            activity: localStorage.getItem('ffmi_activity')
+        };
+
+        // Load gender (default: false = Male)
+        genderToggle.checked = saved.gender === 'true';
+
+        // Load unit system (default: false = Standard)
+        unitToggle.checked = saved.unit === 'true';
+
+        // Load slider values with defaults from HTML
+        heightSlider.value = saved.height || heightSlider.value;
+        weightSlider.value = saved.weight || weightSlider.value;
+        neckSlider.value = saved.neck || neckSlider.value;
+        waistSlider.value = saved.waist || waistSlider.value;
+        hipsSlider.value = saved.hips || hipsSlider.value;
+
+        // Load activity level
+        if (saved.activity) {
+            activityLevel.value = saved.activity;
+        }
+    }
+
+    // Save values to localStorage
+    function saveValues() {
+        localStorage.setItem('ffmi_gender', genderToggle.checked);
+        localStorage.setItem('ffmi_unit', unitToggle.checked);
+        localStorage.setItem('ffmi_height', heightSlider.value);
+        localStorage.setItem('ffmi_weight', weightSlider.value);
+        localStorage.setItem('ffmi_neck', neckSlider.value);
+        localStorage.setItem('ffmi_waist', waistSlider.value);
+        localStorage.setItem('ffmi_hips', hipsSlider.value);
+        localStorage.setItem('ffmi_activity', activityLevel.value);
+    }
+
+    // Load saved values
+    loadSavedValues();
 
     // Set default hip value to 0 when male is selected
-    hipsSlider.value = 0;
+    if (!genderToggle.checked) {
+        hipsSlider.value = 0;
+    }
     document.getElementById('hipsValue').textContent = '0 in'; // Will be updated by updateUI()
 
     // Gray out hip slider by default since male is selected
-    hipsSlider.disabled = true;
-    hipsGroup.classList.add('grayed-out'); // Adding a class to indicate it's grayed out
+    hipsSlider.disabled = !genderToggle.checked;
+    hipsGroup.classList.toggle('grayed-out', !genderToggle.checked);
 
     updateUI();
     updateColors(genderToggle.checked);
@@ -52,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        saveValues(); // Save to localStorage
         updateFFMIScale(genderToggle.checked); // Switch FFMI scale based on gender
         updateColors(genderToggle.checked); // Update colors based on gender
         updateUI();
@@ -59,18 +105,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Unit System Toggle (Standard/Metric)
     unitToggle.addEventListener('change', function () {
+        saveValues(); // Save to localStorage
         updateUI(); // Update the display without moving sliders
     });
 
     // Activity Level Selector - already defined above
-    activityLevel.addEventListener('change', updateUI);
+    activityLevel.addEventListener('change', function() {
+        saveValues(); // Save to localStorage
+        updateUI();
+    });
 
-    // Update input listeners
-    heightSlider.addEventListener('input', updateUI);
-    weightSlider.addEventListener('input', updateUI);
-    neckSlider.addEventListener('input', updateUI);
-    waistSlider.addEventListener('input', updateUI);
-    hipsSlider.addEventListener('input', updateUI);
+    // Update input listeners - save values on change
+    heightSlider.addEventListener('input', function() {
+        saveValues();
+        updateUI();
+    });
+    weightSlider.addEventListener('input', function() {
+        saveValues();
+        updateUI();
+    });
+    neckSlider.addEventListener('input', function() {
+        saveValues();
+        updateUI();
+    });
+    waistSlider.addEventListener('input', function() {
+        saveValues();
+        updateUI();
+    });
+    hipsSlider.addEventListener('input', function() {
+        saveValues();
+        updateUI();
+    });
 
     // Update the UI calculations and input values
     function updateUI() {
@@ -157,7 +222,14 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('bmiCategory').textContent = `(${getBMICategory(bmiValue)})`;
 
         // Body Fat Calculation - U.S. Navy method
-        const bodyFatPercentageRaw = calculateBodyFatPercentage(isFemale, waistInches, neckInches, hipsInches, heightInches);
+        // Note: Body fat % depends on waist, neck, hips (females), and height - NOT weight
+        // Ensure all values are valid numbers, use defaults if invalid
+        const validWaist = isNaN(waistInches) || waistInches <= 0 ? 34 : waistInches;
+        const validNeck = isNaN(neckInches) || neckInches <= 0 ? 15 : neckInches;
+        const validHeight = isNaN(heightInches) || heightInches <= 0 ? 70 : heightInches;
+        const validHips = isFemale ? (isNaN(hipsInches) || hipsInches <= 0 ? 40 : hipsInches) : 0;
+        
+        const bodyFatPercentageRaw = calculateBodyFatPercentage(isFemale, validWaist, validNeck, validHips, validHeight);
         // Clamp body fat percentage to reasonable range (0-70% to handle edge cases)
         const bodyFatPercentageClamped = Math.max(0, Math.min(70, bodyFatPercentageRaw));
         const bodyFatPercentage = Math.round(bodyFatPercentageClamped); // Round to whole percentage
