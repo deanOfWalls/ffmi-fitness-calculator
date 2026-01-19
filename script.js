@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Activity Level Selector - must be defined before updateUI() is called
     const activityLevel = document.getElementById('activityLevel');
+    
+    // Goal Weight Input
+    const goalWeightInput = document.getElementById('goalWeightInput');
+    const goalWeightUnitLabel = document.getElementById('goalWeightUnitLabel');
 
     // Load saved values from localStorage or use defaults
     function loadSavedValues() {
@@ -30,7 +34,8 @@ document.addEventListener('DOMContentLoaded', function () {
             neck: localStorage.getItem('ffmi_neck'),
             waist: localStorage.getItem('ffmi_waist'),
             hips: localStorage.getItem('ffmi_hips'),
-            activity: localStorage.getItem('ffmi_activity')
+            activity: localStorage.getItem('ffmi_activity'),
+            goalWeight: localStorage.getItem('ffmi_goalWeight')
         };
 
         // Load gender (default: false = Male)
@@ -50,6 +55,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (saved.activity) {
             activityLevel.value = saved.activity;
         }
+        
+        // Load goal weight
+        if (saved.goalWeight) {
+            goalWeightInput.value = saved.goalWeight;
+        }
     }
 
     // Save values to localStorage
@@ -62,10 +72,20 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem('ffmi_waist', waistSlider.value);
         localStorage.setItem('ffmi_hips', hipsSlider.value);
         localStorage.setItem('ffmi_activity', activityLevel.value);
+        localStorage.setItem('ffmi_goalWeight', goalWeightInput.value);
     }
 
     // Load saved values
     loadSavedValues();
+    
+    // Set initial goal weight input min/max based on unit system
+    if (unitToggle.checked) {
+        goalWeightInput.min = '36';
+        goalWeightInput.max = '182';
+    } else {
+        goalWeightInput.min = '80';
+        goalWeightInput.max = '400';
+    }
 
     // Set default hip value to 0 when male is selected
     if (!genderToggle.checked) {
@@ -113,6 +133,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Unit System Toggle (Standard/Metric)
     unitToggle.addEventListener('change', function () {
+        // Convert goal weight value when switching units
+        const currentGoalWeight = goalWeightInput.value.trim();
+        if (currentGoalWeight) {
+            const goalWeight = parseFloat(currentGoalWeight);
+            if (!isNaN(goalWeight) && goalWeight > 0) {
+                if (unitToggle.checked) {
+                    // Converting from lbs to kg
+                    goalWeightInput.value = (goalWeight / 2.2).toFixed(1);
+                } else {
+                    // Converting from kg to lbs
+                    goalWeightInput.value = (goalWeight * 2.2).toFixed(1);
+                }
+            }
+        }
+        
+        // Update goal weight input min/max based on unit system
+        if (unitToggle.checked) {
+            // Metric: convert 80-400 lbs to ~36-182 kg
+            goalWeightInput.min = '36';
+            goalWeightInput.max = '182';
+        } else {
+            // Standard: 80-400 lbs
+            goalWeightInput.min = '80';
+            goalWeightInput.max = '400';
+        }
+        
         saveValues(); // Save to localStorage
         updateUI(); // Update the display without moving sliders
     });
@@ -141,6 +187,12 @@ document.addEventListener('DOMContentLoaded', function () {
         updateUI();
     });
     hipsSlider.addEventListener('input', function() {
+        saveValues();
+        updateUI();
+    });
+    
+    // Goal weight input listener
+    goalWeightInput.addEventListener('input', function() {
         saveValues();
         updateUI();
     });
@@ -193,6 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
         neckUnitLabel.textContent = isMetric ? 'cm' : 'inches';
         waistUnitLabel.textContent = isMetric ? 'cm' : 'inches';
         hipsUnitLabel.textContent = isMetric ? 'cm' : 'inches';
+        goalWeightUnitLabel.textContent = isMetric ? 'kg' : 'lbs';
 
         // Update height display with correct suffix (but don't change the slider position)
         if (isMetric) {
@@ -242,10 +295,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // BMI, FFMI, and other calculations
         const activityMultiplier = parseFloat(activityLevel.value);
-        calculateBodyMetrics(isMetric, heightInches, weightLbs, neckInches, waistInches, hipsInches, isFemale, activityMultiplier);
+        
+        // Get goal weight and convert to lbs if needed
+        let goalWeightLbs = null;
+        const goalWeightValue = goalWeightInput.value.trim();
+        if (goalWeightValue) {
+            const goalWeight = parseFloat(goalWeightValue);
+            if (!isNaN(goalWeight) && goalWeight > 0) {
+                goalWeightLbs = isMetric ? (goalWeight * 2.2) : goalWeight;
+            }
+        }
+        
+        calculateBodyMetrics(isMetric, heightInches, weightLbs, neckInches, waistInches, hipsInches, isFemale, activityMultiplier, goalWeightLbs);
     }
 
-    function calculateBodyMetrics(isMetric, heightInches, weightLbs, neckInches, waistInches, hipsInches, isFemale, activityMultiplier) {
+    function calculateBodyMetrics(isMetric, heightInches, weightLbs, neckInches, waistInches, hipsInches, isFemale, activityMultiplier, goalWeightLbs = null) {
         // Convert height/weight to metric if necessary
         const heightMeters = heightInches * 0.0254;
         const heightCm = heightInches * 2.54;
@@ -314,6 +378,22 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('tdee').textContent = Math.round(tdee);
         document.getElementById('weightLoss1lb').textContent = weightLoss1lb;
         document.getElementById('weightLoss2lb').textContent = weightLoss2lb;
+        
+        // Calculate weeks to goal weight
+        const weeksToGoal1lbElement = document.getElementById('weeksToGoal1lb');
+        const weeksToGoal2lbElement = document.getElementById('weeksToGoal2lb');
+        
+        if (goalWeightLbs && goalWeightLbs < weightLbs) {
+            const weightToLose = weightLbs - goalWeightLbs;
+            const weeks1lb = Math.ceil(weightToLose / 1); // 1 lb per week
+            const weeks2lb = Math.ceil(weightToLose / 2); // 2 lbs per week
+            
+            weeksToGoal1lbElement.textContent = `(~${weeks1lb} weeks to goal)`;
+            weeksToGoal2lbElement.textContent = `(~${weeks2lb} weeks to goal)`;
+        } else {
+            weeksToGoal1lbElement.textContent = '';
+            weeksToGoal2lbElement.textContent = '';
+        }
 
         // Update FFMI indicator (ensure it is overlayed on the color bar)
         updateFFMIIndicator(ffmi, isFemale);

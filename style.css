@@ -309,6 +309,36 @@ select:hover {
     border-color: var(--primary-color);
 }
 
+/* Goal Weight Input */
+input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid var(--primary-color);
+    border-radius: 5px;
+    background-color: white;
+    font-size: 0.9em;
+    outline: none;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+input[type="number"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+}
+
+input[type="number"]:hover {
+    border-color: var(--primary-color);
+}
+
+/* Weeks to Goal Display */
+.weeks-to-goal {
+    color: #666;
+    font-size: 0.85em;
+    font-style: italic;
+    margin-left: 8px;
+}
+
 /* Results sections */
 .ffmi-results, .tdee-results {
     margin-top: 15px;
