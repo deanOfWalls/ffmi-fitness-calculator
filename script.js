@@ -76,6 +76,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Gray out hip slider by default since male is selected
     hipsSlider.disabled = !genderToggle.checked;
     hipsGroup.classList.toggle('grayed-out', !genderToggle.checked);
+    
+    // Disable hip slider buttons initially if male
+    const hipsButtons = document.querySelectorAll('[data-slider="hipsSlider"]');
+    hipsButtons.forEach(btn => btn.disabled = !genderToggle.checked);
 
     updateUI();
     updateColors(genderToggle.checked);
@@ -84,6 +88,10 @@ document.addEventListener('DOMContentLoaded', function () {
     genderToggle.addEventListener('change', function () {
         hipsSlider.disabled = !genderToggle.checked; // Enable only when female is selected
         hipsGroup.classList.toggle('grayed-out', !genderToggle.checked); // Gray out when male
+        
+        // Disable/enable hip slider buttons
+        const hipsButtons = document.querySelectorAll('[data-slider="hipsSlider"]');
+        hipsButtons.forEach(btn => btn.disabled = !genderToggle.checked);
 
         // Set default hip value to 0 if male is selected
         if (!genderToggle.checked) {
@@ -135,6 +143,37 @@ document.addEventListener('DOMContentLoaded', function () {
     hipsSlider.addEventListener('input', function() {
         saveValues();
         updateUI();
+    });
+
+    // Add arrow button functionality for precise slider control
+    function adjustSlider(sliderId, direction) {
+        const slider = document.getElementById(sliderId);
+        if (!slider || slider.disabled) return;
+        
+        const currentValue = parseFloat(slider.value);
+        const step = parseFloat(slider.step) || 1;
+        const min = parseFloat(slider.min);
+        const max = parseFloat(slider.max);
+        
+        let newValue;
+        if (direction === 'increase') {
+            newValue = Math.min(max, currentValue + step);
+        } else {
+            newValue = Math.max(min, currentValue - step);
+        }
+        
+        slider.value = newValue;
+        saveValues();
+        updateUI();
+    }
+
+    // Add event listeners to all slider buttons
+    document.querySelectorAll('.slider-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const sliderId = this.getAttribute('data-slider');
+            const direction = this.getAttribute('data-direction');
+            adjustSlider(sliderId, direction);
+        });
     });
 
     // Update the UI calculations and input values

@@ -34,35 +34,55 @@
             <!-- Height Slider -->
             <div class="input-group">
                 <label for="heightSlider">Height (<span id="heightUnitLabel">ft/in</span>):</label>
-                <input type="range" id="heightSlider" min="48" max="96" value="70"> <!-- Default to 5ft 10in -->
+                <div class="slider-container">
+                    <button class="slider-btn" data-slider="heightSlider" data-direction="decrease">◀</button>
+                    <input type="range" id="heightSlider" min="48" max="96" value="70"> <!-- Default to 5ft 10in -->
+                    <button class="slider-btn" data-slider="heightSlider" data-direction="increase">▶</button>
+                </div>
                 <span id="heightValue">70</span>
             </div>
 
             <!-- Weight Slider -->
             <div class="input-group">
                 <label for="weightSlider">Weight (<span id="weightUnitLabel">lbs</span>):</label>
-                <input type="range" id="weightSlider" min="100" max="350" step="0.5" value="188">
+                <div class="slider-container">
+                    <button class="slider-btn" data-slider="weightSlider" data-direction="decrease">◀</button>
+                    <input type="range" id="weightSlider" min="100" max="350" step="0.5" value="188">
+                    <button class="slider-btn" data-slider="weightSlider" data-direction="increase">▶</button>
+                </div>
                 <span id="weightValue">188</span>
             </div>
 
             <!-- Neck Circumference -->
             <div class="input-group">
                 <label for="neckSlider">Neck Circumference (<span id="neckUnitLabel">inches</span>):</label>
-                <input type="range" id="neckSlider" min="10" max="30" step="0.5" value="15">
+                <div class="slider-container">
+                    <button class="slider-btn" data-slider="neckSlider" data-direction="decrease">◀</button>
+                    <input type="range" id="neckSlider" min="10" max="30" step="0.5" value="15">
+                    <button class="slider-btn" data-slider="neckSlider" data-direction="increase">▶</button>
+                </div>
                 <span id="neckValue">15</span>
             </div>
 
             <!-- Waist Circumference -->
             <div class="input-group">
                 <label for="waistSlider">Waist at naval (<span id="waistUnitLabel">inches</span>):</label>
-                <input type="range" id="waistSlider" min="20" max="60" step="0.5" value="34">
+                <div class="slider-container">
+                    <button class="slider-btn" data-slider="waistSlider" data-direction="decrease">◀</button>
+                    <input type="range" id="waistSlider" min="20" max="60" step="0.5" value="34">
+                    <button class="slider-btn" data-slider="waistSlider" data-direction="increase">▶</button>
+                </div>
                 <span id="waistValue">34</span>
             </div>
 
             <!-- Hip Circumference -->
             <div class="input-group" id="hipsGroup">
                 <label for="hipsSlider">Hip Circumference (<span id="hipsUnitLabel">inches</span>):</label>
-                <input type="range" id="hipsSlider" min="20" max="60" value="40" disabled>
+                <div class="slider-container">
+                    <button class="slider-btn" data-slider="hipsSlider" data-direction="decrease">◀</button>
+                    <input type="range" id="hipsSlider" min="20" max="60" value="40" disabled>
+                    <button class="slider-btn" data-slider="hipsSlider" data-direction="increase">▶</button>
+                </div>
                 <span id="hipsValue">0 in</span> <!-- Default to 0 and disabled for males -->
             </div>
 
