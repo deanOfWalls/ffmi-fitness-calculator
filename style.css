@@ -334,6 +334,27 @@ select:hover {
     position: relative;
 }
 
+/* BMI Category Colors */
+#bmiCategory.bmi-underweight {
+    color: #ff8c00; /* Orange for underweight */
+    font-weight: bold;
+}
+
+#bmiCategory.bmi-normal {
+    color: #28a745; /* Green for normal */
+    font-weight: bold;
+}
+
+#bmiCategory.bmi-overweight {
+    color: #ff8c00; /* Orange for overweight */
+    font-weight: bold;
+}
+
+#bmiCategory.bmi-obese {
+    color: #dc3545; /* Red for obese */
+    font-weight: bold;
+}
+
 .result-group p strong.tooltip-trigger .tooltip-text {
     display: none;
     position: absolute;

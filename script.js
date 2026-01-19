@@ -258,7 +258,23 @@ document.addEventListener('DOMContentLoaded', function () {
             : ((weightLbs * 703) / Math.pow(heightInches, 2));
         
         document.getElementById('bmi').textContent = bmiValue.toFixed(2);
-        document.getElementById('bmiCategory').textContent = `(${getBMICategory(bmiValue)})`;
+        const bmiCategoryElement = document.getElementById('bmiCategory');
+        const category = getBMICategory(bmiValue);
+        bmiCategoryElement.textContent = `(${category})`;
+        
+        // Remove all category classes
+        bmiCategoryElement.classList.remove('bmi-underweight', 'bmi-normal', 'bmi-overweight', 'bmi-obese');
+        
+        // Add appropriate class based on category
+        if (category === 'Underweight') {
+            bmiCategoryElement.classList.add('bmi-underweight');
+        } else if (category === 'Normal') {
+            bmiCategoryElement.classList.add('bmi-normal');
+        } else if (category === 'Overweight') {
+            bmiCategoryElement.classList.add('bmi-overweight');
+        } else if (category === 'Obese') {
+            bmiCategoryElement.classList.add('bmi-obese');
+        }
 
         // Body Fat Calculation - U.S. Navy method
         // Note: Body fat % depends on waist, neck, hips (females), and height - NOT weight
