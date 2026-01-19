@@ -59,39 +59,53 @@ label {
 .slider-container {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
 }
 
 .slider-btn {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    width: 30px;
-    height: 30px;
-    font-size: 14px;
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1.5px solid var(--primary-color);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    font-weight: 300;
+    line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: all 0.2s ease;
     user-select: none;
+    padding: 0;
+    margin: 0;
 }
 
 .slider-btn:hover {
     background-color: var(--primary-color);
-    opacity: 0.8;
+    color: white;
+    transform: scale(1.05);
 }
 
 .slider-btn:active {
     transform: scale(0.95);
+    background-color: var(--primary-color);
+    color: white;
 }
 
 .slider-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: not-allowed;
+    border-color: #ccc;
+    color: #ccc;
+}
+
+.slider-btn:disabled:hover {
+    background-color: transparent;
+    transform: none;
 }
 
 .slider-container input[type="range"] {
