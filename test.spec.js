@@ -90,5 +90,81 @@ test.describe('FFMI Calculator Tests', () => {
     // TDEE should be calculated (not 0)
     expect(parseInt(tdeeValue)).toBeGreaterThan(0);
   });
+
+  test('weight loss mode when current weight > goal weight', async ({ page }) => {
+    await page.waitForTimeout(300);
+    // Set current weight to 200 lbs
+    await page.locator('#weightSlider').fill('200');
+    await page.waitForTimeout(100);
+    // Set goal weight below current (e.g. 180 lbs)
+    await page.locator('#goalWeightInput').fill('180');
+    await page.locator('#goalWeightInput').blur();
+    await page.waitForTimeout(200);
+
+    await expect(page.locator('#weightChangeLabel1')).toHaveText('Weight Loss');
+    await expect(page.locator('#weightChangeLabel2')).toHaveText('Weight Loss');
+
+    const tdee = parseInt(await page.locator('#tdee').textContent());
+    const cal1 = parseInt(await page.locator('#weightLoss1lb').textContent());
+    const cal2 = parseInt(await page.locator('#weightLoss2lb').textContent());
+    expect(cal1).toBe(tdee - 500);
+    expect(cal2).toBe(tdee - 1000);
+
+    await expect(page.locator('#weeksToGoal1lb')).toContainText('weeks to goal');
+    await expect(page.locator('#weeksToGoal2lb')).toContainText('weeks to goal');
+    const weeks1 = await page.locator('#weeksToGoal1lb').textContent();
+    const weeks2 = await page.locator('#weeksToGoal2lb').textContent();
+    expect(weeks1).toMatch(/~20 weeks/); // 20 lbs at 1 lb/week
+    expect(weeks2).toMatch(/~10 weeks/);  // 20 lbs at 2 lb/week
+  });
+
+  test('weight gain mode when current weight < goal weight', async ({ page }) => {
+    await page.waitForTimeout(300);
+    // Set current weight to 160 lbs
+    await page.locator('#weightSlider').fill('160');
+    await page.waitForTimeout(100);
+    // Set goal weight above current (e.g. 180 lbs)
+    await page.locator('#goalWeightInput').fill('180');
+    await page.locator('#goalWeightInput').blur();
+    await page.waitForTimeout(200);
+
+    await expect(page.locator('#weightChangeLabel1')).toHaveText('Weight Gain');
+    await expect(page.locator('#weightChangeLabel2')).toHaveText('Weight Gain');
+
+    const tdee = parseInt(await page.locator('#tdee').textContent());
+    const cal1 = parseInt(await page.locator('#weightLoss1lb').textContent());
+    const cal2 = parseInt(await page.locator('#weightLoss2lb').textContent());
+    expect(cal1).toBe(tdee + 500);
+    expect(cal2).toBe(tdee + 1000);
+
+    await expect(page.locator('#weeksToGoal1lb')).toContainText('weeks to goal');
+    await expect(page.locator('#weeksToGoal2lb')).toContainText('weeks to goal');
+    const weeks1 = await page.locator('#weeksToGoal1lb').textContent();
+    const weeks2 = await page.locator('#weeksToGoal2lb').textContent();
+    expect(weeks1).toMatch(/~20 weeks/); // 20 lbs at 1 lb/week
+    expect(weeks2).toMatch(/~10 weeks/);  // 20 lbs at 2 lb/week
+  });
+
+  test('no goal weight shows weight loss and no weeks to goal', async ({ page }) => {
+    await page.waitForTimeout(300);
+    await page.locator('#weightSlider').fill('180');
+    await page.waitForTimeout(100);
+    // Clear goal weight if any
+    await page.locator('#goalWeightInput').fill('');
+    await page.locator('#goalWeightInput').blur();
+    await page.waitForTimeout(200);
+
+    await expect(page.locator('#weightChangeLabel1')).toHaveText('Weight Loss');
+    await expect(page.locator('#weightChangeLabel2')).toHaveText('Weight Loss');
+
+    const tdee = parseInt(await page.locator('#tdee').textContent());
+    const cal1 = parseInt(await page.locator('#weightLoss1lb').textContent());
+    const cal2 = parseInt(await page.locator('#weightLoss2lb').textContent());
+    expect(cal1).toBe(tdee - 500);
+    expect(cal2).toBe(tdee - 1000);
+
+    await expect(page.locator('#weeksToGoal1lb')).toHaveText('');
+    await expect(page.locator('#weeksToGoal2lb')).toHaveText('');
+  });
 });
 

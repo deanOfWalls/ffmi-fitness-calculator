@@ -8,6 +8,7 @@
 </head>
 <body>
     <div class="container">
+        <div class="main-content">
         <div class="inputs">
             <h1>All-in-One Fitness Calculator</h1>
             
@@ -123,8 +124,8 @@
             <div class="result-group">
                 <p><strong class="tooltip-trigger" data-tooltip="Basal Metabolic Rate (BMR): The number of calories your body burns at rest to maintain basic physiological functions like breathing, circulation, and cell production. Calculated using the Mifflin-St Jeor equation.">BMR:<span class="tooltip-text"></span></strong> <span id="bmr">0</span> <span id="bmrUnit">calories/day</span></p>
                 <p><strong class="tooltip-trigger" data-tooltip="Total Daily Energy Expenditure (TDEE): The total number of calories you burn per day, including BMR plus calories burned through physical activity. This is your maintenance calorie level.">TDEE:<span class="tooltip-text"></span></strong> <span id="tdee">0</span> <span id="tdeeUnit">calories/day</span></p>
-                <p><strong>Weight Loss (1 lb/week):</strong> <span id="weightLoss1lb">0</span> <span id="weightLoss1lbUnit">calories/day</span> <span id="weeksToGoal1lb" class="weeks-to-goal"></span></p>
-                <p><strong>Weight Loss (2 lb/week):</strong> <span id="weightLoss2lb">0</span> <span id="weightLoss2lbUnit">calories/day</span> <span id="weeksToGoal2lb" class="weeks-to-goal"></span></p>
+                <p><strong><span id="weightChangeLabel1">Weight Loss</span> (1 lb/week):</strong> <span id="weightLoss1lb">0</span> <span id="weightLoss1lbUnit">calories/day</span> <span id="weeksToGoal1lb" class="weeks-to-goal"></span></p>
+                <p><strong><span id="weightChangeLabel2">Weight Loss</span> (2 lb/week):</strong> <span id="weightLoss2lb">0</span> <span id="weightLoss2lbUnit">calories/day</span> <span id="weeksToGoal2lb" class="weeks-to-goal"></span></p>
             </div>
         </div>
 
@@ -184,6 +185,13 @@
                     <span>21</span>
                 </div>
             </div>
+        </div>
+        </div>
+
+        <div class="history-panel">
+            <h2 class="history-title">History</h2>
+            <p class="history-hint">Select a day to view that snapshot. Only one can be selected.</p>
+            <div class="history-list" id="historyList"></div>
         </div>
     </div>
 

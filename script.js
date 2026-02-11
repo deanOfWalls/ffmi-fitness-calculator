@@ -62,6 +62,74 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    const HISTORY_KEY = 'ffmi_daily_history';
+    const MAX_HISTORY_DAYS = 365;
+
+    function getCurrentFormState() {
+        return {
+            gender: genderToggle.checked,
+            unit: unitToggle.checked,
+            height: heightSlider.value,
+            weight: weightSlider.value,
+            neck: neckSlider.value,
+            waist: waistSlider.value,
+            hips: hipsSlider.value,
+            activity: activityLevel.value,
+            goalWeight: goalWeightInput.value
+        };
+    }
+
+    function applyFormState(state) {
+        if (!state) return;
+        genderToggle.checked = state.gender === true || state.gender === 'true';
+        unitToggle.checked = state.unit === true || state.unit === 'true';
+        heightSlider.value = state.height || heightSlider.value;
+        weightSlider.value = state.weight || weightSlider.value;
+        neckSlider.value = state.neck || neckSlider.value;
+        waistSlider.value = state.waist || waistSlider.value;
+        hipsSlider.value = state.hips || hipsSlider.value;
+        if (state.activity != null) activityLevel.value = state.activity;
+        goalWeightInput.value = state.goalWeight != null ? state.goalWeight : '';
+        hipsSlider.disabled = !genderToggle.checked;
+        hipsGroup.classList.toggle('grayed-out', !genderToggle.checked);
+        document.querySelectorAll('[data-slider="hipsSlider"]').forEach(btn => btn.disabled = !genderToggle.checked);
+        if (unitToggle.checked) {
+            goalWeightInput.min = '36';
+            goalWeightInput.max = '182';
+        } else {
+            goalWeightInput.min = '80';
+            goalWeightInput.max = '400';
+        }
+        updateFFMIScale(genderToggle.checked);
+        updateColors(genderToggle.checked);
+        updateUI();
+    }
+
+    function getTodayKey() {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function getDailyHistory() {
+        try {
+            const raw = localStorage.getItem(HISTORY_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveDailySnapshot() {
+        const key = getTodayKey();
+        const history = getDailyHistory();
+        history[key] = getCurrentFormState();
+        const keys = Object.keys(history).sort();
+        if (keys.length > MAX_HISTORY_DAYS) {
+            keys.slice(0, keys.length - MAX_HISTORY_DAYS).forEach(k => delete history[k]);
+        }
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+
     // Save values to localStorage
     function saveValues() {
         localStorage.setItem('ffmi_gender', genderToggle.checked);
@@ -73,6 +141,54 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem('ffmi_hips', hipsSlider.value);
         localStorage.setItem('ffmi_activity', activityLevel.value);
         localStorage.setItem('ffmi_goalWeight', goalWeightInput.value);
+        const onToday = document.querySelector('input[name="historyDay"]:checked')?.value === 'today';
+        if (onToday) {
+            saveDailySnapshot();
+            todayLiveState = getCurrentFormState();
+        }
+    }
+
+    // Today's live state (restored when switching back from a past day)
+    let todayLiveState = null;
+
+    function formatHistoryDate(isoKey) {
+        const [y, m, d] = isoKey.split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        const now = new Date();
+        const isToday = now.getFullYear() === y && now.getMonth() === m - 1 && now.getDate() === d;
+        if (isToday) return 'Today';
+        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function renderHistoryList() {
+        const listEl = document.getElementById('historyList');
+        if (!listEl) return;
+        const history = getDailyHistory();
+        const todayKey = getTodayKey();
+        const keys = Object.keys(history).filter(k => history[k] != null).sort().reverse();
+        const selected = listEl.querySelector('input[name="historyDay"]:checked');
+        const selectedValue = selected ? selected.value : 'today';
+
+        let html = '';
+        html += '<label class="history-item"><input type="radio" name="historyDay" value="today"' + (selectedValue === 'today' ? ' checked' : '') + '> Today</label>';
+        keys.forEach(key => {
+            if (key === todayKey) return;
+            html += '<label class="history-item"><input type="radio" name="historyDay" value="' + key + '"' + (selectedValue === key ? ' checked' : '') + '> ' + formatHistoryDate(key) + '</label>';
+        });
+        listEl.innerHTML = html;
+
+        listEl.querySelectorAll('input[name="historyDay"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                const value = this.value;
+                if (value === 'today') {
+                    applyFormState(todayLiveState);
+                } else {
+                    todayLiveState = getCurrentFormState();
+                    const state = getDailyHistory()[value];
+                    if (state) applyFormState(state);
+                }
+            });
+        });
     }
 
     // Load saved values
@@ -103,6 +219,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     updateUI();
     updateColors(genderToggle.checked);
+
+    todayLiveState = getCurrentFormState();
+    saveDailySnapshot();
+    renderHistoryList();
 
     // Gender Toggle (Male/Female)
     genderToggle.addEventListener('change', function () {
@@ -369,31 +489,50 @@ document.addEventListener('DOMContentLoaded', function () {
         const bmr = calculateBMR(isFemale, weightKg, heightCm);
         const tdee = bmr * activityMultiplier;
         
-        // Calculate weight loss calories (1 lb/week = 500 cal deficit, 2 lb/week = 1000 cal deficit)
-        const weightLoss1lb = Math.max(0, Math.round(tdee - 500));
-        const weightLoss2lb = Math.max(0, Math.round(tdee - 1000));
-
-        // Update TDEE and weight loss values
-        document.getElementById('bmr').textContent = Math.round(bmr);
-        document.getElementById('tdee').textContent = Math.round(tdee);
-        document.getElementById('weightLoss1lb').textContent = weightLoss1lb;
-        document.getElementById('weightLoss2lb').textContent = weightLoss2lb;
-        
-        // Calculate weeks to goal weight
+        const label1 = document.getElementById('weightChangeLabel1');
+        const label2 = document.getElementById('weightChangeLabel2');
         const weeksToGoal1lbElement = document.getElementById('weeksToGoal1lb');
         const weeksToGoal2lbElement = document.getElementById('weeksToGoal2lb');
         
-        if (goalWeightLbs && goalWeightLbs < weightLbs) {
-            const weightToLose = weightLbs - goalWeightLbs;
-            const weeks1lb = Math.ceil(weightToLose / 1); // 1 lb per week
-            const weeks2lb = Math.ceil(weightToLose / 2); // 2 lbs per week
+        let cal1, cal2;
+        if (goalWeightLbs && goalWeightLbs > weightLbs) {
+            // Goal weight above current = weight gain (surplus: +500 cal for 1 lb/week, +1000 for 2 lb/week)
+            label1.textContent = 'Weight Gain';
+            label2.textContent = 'Weight Gain';
+            cal1 = Math.round(tdee + 500);
+            cal2 = Math.round(tdee + 1000);
             
+            const weightToGain = goalWeightLbs - weightLbs;
+            const weeks1lb = Math.ceil(weightToGain / 1);
+            const weeks2lb = Math.ceil(weightToGain / 2);
+            weeksToGoal1lbElement.textContent = `(~${weeks1lb} weeks to goal)`;
+            weeksToGoal2lbElement.textContent = `(~${weeks2lb} weeks to goal)`;
+        } else if (goalWeightLbs && goalWeightLbs < weightLbs) {
+            // Goal weight below current = weight loss (deficit)
+            label1.textContent = 'Weight Loss';
+            label2.textContent = 'Weight Loss';
+            cal1 = Math.max(0, Math.round(tdee - 500));
+            cal2 = Math.max(0, Math.round(tdee - 1000));
+            
+            const weightToLose = weightLbs - goalWeightLbs;
+            const weeks1lb = Math.ceil(weightToLose / 1);
+            const weeks2lb = Math.ceil(weightToLose / 2);
             weeksToGoal1lbElement.textContent = `(~${weeks1lb} weeks to goal)`;
             weeksToGoal2lbElement.textContent = `(~${weeks2lb} weeks to goal)`;
         } else {
+            // No goal or goal equals current: show weight loss options, no weeks
+            label1.textContent = 'Weight Loss';
+            label2.textContent = 'Weight Loss';
+            cal1 = Math.max(0, Math.round(tdee - 500));
+            cal2 = Math.max(0, Math.round(tdee - 1000));
             weeksToGoal1lbElement.textContent = '';
             weeksToGoal2lbElement.textContent = '';
         }
+
+        document.getElementById('bmr').textContent = Math.round(bmr);
+        document.getElementById('tdee').textContent = Math.round(tdee);
+        document.getElementById('weightLoss1lb').textContent = cal1;
+        document.getElementById('weightLoss2lb').textContent = cal2;
 
         // Update FFMI indicator (ensure it is overlayed on the color bar)
         updateFFMIIndicator(ffmi, isFemale);
