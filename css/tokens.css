@@ -1,0 +1,75 @@
+/**
+ * Design tokens – your color palette.
+ * Light = :root; dark = body.dark; female accent = body.female.
+ */
+:root {
+    --primary-color: #4a90e2;
+    --primary-color-light: #dbeaff;
+    --slider-color: #4a90e2;
+
+    --bg0: #dbeaff;
+    --bg1: #ffffff;
+    --bg2: #f7f7f7;
+    --bg3: #eeeeee;
+    --border: rgba(0, 0, 0, 0.12);
+    --border-soft: rgba(0, 0, 0, 0.08);
+    --text-strong: #222;
+    --text: #222;
+    --text-muted: #5a5a5a;
+    --text-disabled: #888;
+    --accent: #4a90e2;
+    --accent-hover: #66a8f0;
+    --accent-soft: rgba(74, 144, 226, 0.18);
+    --good: #16A34A;
+    --warn: #D97706;
+    --bad: #DC2626;
+    --shadow-1: 0 4px 16px rgba(0, 0, 0, 0.1);
+    --shadow-2: 0 8px 28px rgba(0, 0, 0, 0.15);
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 14px;
+    --s-1: 6px;
+    --s-2: 10px;
+    --s-3: 14px;
+    --s-4: 18px;
+    --s-5: 24px;
+    --s-6: 32px;
+}
+
+body.female {
+    --primary-color: #ff8ab8;
+    --primary-color-light: #ffe4f0;
+    --slider-color: #ff8ab8;
+    --accent: #ff8ab8;
+    --accent-hover: #ff9ec6;
+    --accent-soft: rgba(255, 138, 184, 0.18);
+}
+
+body.dark {
+    --bg0: #0b0f16;
+    --bg1: #161f31;
+    --bg2: #121826;
+    --bg3: #1a2332;
+    --border: rgba(255, 255, 255, 0.10);
+    --border-soft: rgba(255, 255, 255, 0.06);
+    --text-strong: #e9eef7;
+    --text: #e9eef7;
+    --text-muted: #a7b4cc;
+    --text-disabled: #64748B;
+    --accent: #4a90e2;
+    --accent-hover: #66B6FF;
+    --accent-soft: rgba(74, 144, 226, 0.18);
+    --good: #2ECC71;
+    --warn: #F4C542;
+    --bad: #FF5C7A;
+    --shadow-1: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-2: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+body.dark.female {
+    --primary-color: #ff8ab8;
+    --slider-color: #ff8ab8;
+    --accent: #ff8ab8;
+    --accent-hover: #ff9ec6;
+    --accent-soft: rgba(255, 138, 184, 0.18);
+}

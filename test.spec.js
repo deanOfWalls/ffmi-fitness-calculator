@@ -27,27 +27,22 @@ test.describe('FFMI Calculator Tests', () => {
   });
 
   test('gender toggle switches to female styling', async ({ page }) => {
-    // Click the label/switch instead of the hidden checkbox
     const genderToggleLabel = page.locator('label.switch').first();
     const body = page.locator('body');
-    
-    // Check initial state (male - blue)
-    let primaryColor = await page.evaluate(() => 
-      getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()
+
+    let accent = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
     );
-    expect(primaryColor).toBe('#4a90e2'); // Male blue
-    
-    // Toggle to female by clicking the switch label
+    expect(accent).toBe('#3FA2FF'); // Male blue
+
     await genderToggleLabel.click();
     await page.waitForTimeout(200);
-    
-    // Check if colors updated (should be pink)
-    primaryColor = await page.evaluate(() => 
-      getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()
+
+    accent = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
     );
-    expect(primaryColor).toBe('#ff8ab8'); // Female pink
-    
-    // Check background color
+    expect(accent).toBe('#e891b0'); // Female pink
+
     const bgColor = await body.evaluate((el) => window.getComputedStyle(el).backgroundColor);
     expect(bgColor).toContain('rgb');
   });

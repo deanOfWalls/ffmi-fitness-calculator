@@ -1,0 +1,99 @@
+/**
+ * Range sliders: track muted, thumb accent.
+ */
+.slider-wrap,
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: var(--s-1);
+    flex: 1;
+    min-width: 0;
+}
+
+.slider-wrap input[type="range"],
+.slider-container input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--border);
+    outline: none;
+}
+
+.slider-wrap input[type="range"]::-webkit-slider-thumb,
+.slider-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+}
+
+.slider-wrap input[type="range"]::-webkit-slider-thumb:hover,
+.slider-container input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 6px var(--accent-soft);
+}
+
+.slider-wrap input[type="range"]::-moz-range-thumb,
+.slider-container input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+}
+
+.slider-wrap input[type="range"]::-moz-range-thumb:hover,
+.slider-container input[type="range"]::-moz-range-thumb:hover {
+    box-shadow: 0 0 0 6px var(--accent-soft);
+}
+
+.slider-wrap input[type="range"]:focus-visible,
+.slider-container input[type="range"]:focus-visible {
+    outline: none;
+}
+
+.slider-wrap input[type="range"]:focus-visible::-webkit-slider-thumb,
+.slider-container input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.slider-wrap input[type="range"]:focus-visible::-moz-range-thumb,
+.slider-container input[type="range"]:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.slider-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    background: var(--bg2);
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.slider-btn:hover:not(:disabled) {
+    background: var(--bg3);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.slider-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

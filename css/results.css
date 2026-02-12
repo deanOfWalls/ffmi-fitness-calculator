@@ -1,0 +1,57 @@
+/**
+ * FFMI scale only. Result lines live in components.css.
+ */
+.ffmi-scale-wrap {
+    margin-top: var(--s-2);
+}
+
+.ffmi-scale {
+    position: relative;
+    height: 18px;
+    width: 100%;
+    background: linear-gradient(
+        to right,
+        rgba(211, 211, 211, 0.8),
+        rgba(0, 128, 128, 0.8),
+        rgba(255, 165, 0, 0.8),
+        rgba(218, 165, 32, 0.8),
+        rgba(220, 20, 60, 0.8),
+        rgba(0, 0, 139, 0.8)
+    );
+    border-radius: var(--r-sm);
+}
+
+.ffmi-indicator {
+    position: absolute;
+    width: 10px;
+    height: 24px;
+    top: -3px;
+    background: var(--bg3);
+    border: 2px solid var(--accent);
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.ffmi-labels-below {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    margin-top: 2px;
+    color: var(--text-muted);
+}
+
+.ffmi-numbers-below {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    margin-top: 1px;
+    color: var(--text-muted);
+}
+
+.ffmi-scale[aria-hidden="true"] {
+    display: none;
+}
+
+.ffmi-scale[aria-hidden="false"] {
+    display: block;
+}
