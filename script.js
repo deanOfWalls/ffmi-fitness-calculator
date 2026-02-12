@@ -23,12 +23,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // Goal Weight Input
     const goalWeightInput = document.getElementById('goalWeightInput');
     const goalWeightUnitLabel = document.getElementById('goalWeightUnitLabel');
+    const darkModeToggle = document.getElementById('darkModeToggle');
 
     // Load saved values from localStorage or use defaults
     function loadSavedValues() {
         const saved = {
             gender: localStorage.getItem('ffmi_gender'),
             unit: localStorage.getItem('ffmi_unit'),
+            darkMode: localStorage.getItem('ffmi_darkMode'),
             height: localStorage.getItem('ffmi_height'),
             weight: localStorage.getItem('ffmi_weight'),
             neck: localStorage.getItem('ffmi_neck'),
@@ -43,6 +45,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Load unit system (default: false = Standard)
         unitToggle.checked = saved.unit === 'true';
+
+        // Load dark mode (default: true = Dark when no preference saved)
+        darkModeToggle.checked = saved.darkMode !== 'false';
+        bodyElement.classList.toggle('dark', darkModeToggle.checked);
 
         // Load slider values with defaults from HTML
         heightSlider.value = saved.height || heightSlider.value;
@@ -101,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
             goalWeightInput.max = '400';
         }
         updateFFMIScale(genderToggle.checked);
-        updateColors(genderToggle.checked);
+        updateColors(genderToggle.checked, darkModeToggle ? darkModeToggle.checked : false);
         updateUI();
     }
 
@@ -141,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem('ffmi_hips', hipsSlider.value);
         localStorage.setItem('ffmi_activity', activityLevel.value);
         localStorage.setItem('ffmi_goalWeight', goalWeightInput.value);
+        localStorage.setItem('ffmi_darkMode', darkModeToggle.checked);
         const onToday = document.querySelector('input[name="historyDay"]:checked')?.value === 'today';
         if (onToday) {
             saveDailySnapshot();
@@ -170,15 +177,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedValue = selected ? selected.value : 'today';
 
         let html = '';
-        html += '<label class="history-item"><input type="radio" name="historyDay" value="today"' + (selectedValue === 'today' ? ' checked' : '') + '> Today</label>';
+        html += '<label class="history-item' + (selectedValue === 'today' ? ' is-selected' : '') + '"><input type="radio" name="historyDay" value="today"' + (selectedValue === 'today' ? ' checked' : '') + '> <span class="history-item__label">Today</span></label>';
         keys.forEach(key => {
             if (key === todayKey) return;
-            html += '<label class="history-item"><input type="radio" name="historyDay" value="' + key + '"' + (selectedValue === key ? ' checked' : '') + '> ' + formatHistoryDate(key) + '</label>';
+            html += '<label class="history-item' + (selectedValue === key ? ' is-selected' : '') + '"><input type="radio" name="historyDay" value="' + key + '"' + (selectedValue === key ? ' checked' : '') + '> <span class="history-item__label">' + formatHistoryDate(key) + '</span></label>';
         });
         listEl.innerHTML = html;
 
         listEl.querySelectorAll('input[name="historyDay"]').forEach(radio => {
             radio.addEventListener('change', function () {
+                listEl.querySelectorAll('.history-item').forEach(el => el.classList.remove('is-selected'));
+                this.closest('.history-item').classList.add('is-selected');
                 const value = this.value;
                 if (value === 'today') {
                     applyFormState(todayLiveState);
@@ -218,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
     hipsButtons.forEach(btn => btn.disabled = !genderToggle.checked);
 
     updateUI();
-    updateColors(genderToggle.checked);
+    updateColors(genderToggle.checked, darkModeToggle ? darkModeToggle.checked : false);
 
     todayLiveState = getCurrentFormState();
     saveDailySnapshot();
@@ -247,9 +256,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         saveValues(); // Save to localStorage
         updateFFMIScale(genderToggle.checked); // Switch FFMI scale based on gender
-        updateColors(genderToggle.checked); // Update colors based on gender
+        updateColors(genderToggle.checked, darkModeToggle ? darkModeToggle.checked : false);
         updateUI();
     });
+
+    // Dark mode: theme button (top-right) toggles hidden checkbox; icon reflects current mode via CSS
+    const themeToggleBtn = document.getElementById('themeToggle');
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', function () {
+            bodyElement.classList.toggle('dark', darkModeToggle.checked);
+            saveValues();
+            updateColors(genderToggle.checked, darkModeToggle.checked);
+        });
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', function () {
+                darkModeToggle.checked = !darkModeToggle.checked;
+                darkModeToggle.dispatchEvent(new Event('change'));
+            });
+        }
+    }
 
     // Unit System Toggle (Standard/Metric)
     unitToggle.addEventListener('change', function () {
@@ -444,20 +469,15 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('bmi').textContent = bmiValue.toFixed(2);
         const bmiCategoryElement = document.getElementById('bmiCategory');
         const category = getBMICategory(bmiValue);
-        bmiCategoryElement.textContent = `(${category})`;
-        
-        // Remove all category classes
-        bmiCategoryElement.classList.remove('bmi-underweight', 'bmi-normal', 'bmi-overweight', 'bmi-obese');
-        
-        // Add appropriate class based on category
-        if (category === 'Underweight') {
-            bmiCategoryElement.classList.add('bmi-underweight');
-        } else if (category === 'Normal') {
-            bmiCategoryElement.classList.add('bmi-normal');
-        } else if (category === 'Overweight') {
-            bmiCategoryElement.classList.add('bmi-overweight');
+        bmiCategoryElement.textContent = category;
+        bmiCategoryElement.classList.remove('badge--good', 'badge--warn', 'badge--bad');
+        bmiCategoryElement.classList.add('badge');
+        if (category === 'Normal') {
+            bmiCategoryElement.classList.add('badge--good');
+        } else if (category === 'Underweight' || category === 'Overweight') {
+            bmiCategoryElement.classList.add('badge--warn');
         } else if (category === 'Obese') {
-            bmiCategoryElement.classList.add('bmi-obese');
+            bmiCategoryElement.classList.add('badge--bad');
         }
 
         // Body Fat Calculation - U.S. Navy method
@@ -559,19 +579,14 @@ document.addEventListener('DOMContentLoaded', function () {
         ffmiIndicator.style.left = `${Math.max(0, Math.min(indicatorPosition, 99))}%`; // Ensure padding
     }
 
-// Update the colors based on gender
-function updateColors(isFemale) {
-    const primaryColor = isFemale ? '#ff8ab8' : '#4a90e2'; // Softer pink for female, softer blue for male
-    const primaryColorLight = isFemale ? '#ffe4f0' : '#dbeaff'; // Lighter background shades
-    const sliderColor = primaryColor; // Matching slider color to primary
-    
-    // Set CSS custom properties for primary and slider colors
-    document.documentElement.style.setProperty('--primary-color', primaryColor);
-    document.documentElement.style.setProperty('--primary-color-light', primaryColorLight);
-    document.documentElement.style.setProperty('--slider-color', sliderColor); // Update slider bar color
-    
-    // Set the entire page background color
-    bodyElement.style.backgroundColor = primaryColorLight; // Light background colors for male and female
+// Sync accent with gender; style.css uses body.female for --primary-color / --slider-color
+function updateColors(isFemale, isDark) {
+    document.body.classList.toggle('female', isFemale);
+    const accent = isFemale ? '#e891b0' : '#3FA2FF';
+    const accentSoft = isFemale ? 'rgba(232, 145, 176, 0.18)' : 'rgba(63, 162, 255, 0.18)';
+    document.documentElement.style.setProperty('--accent', accent);
+    document.documentElement.style.setProperty('--accent-soft', accentSoft);
+    document.documentElement.style.setProperty('--accent-hover', isFemale ? '#f0a0c0' : '#66B6FF');
 }
 
 
@@ -613,8 +628,8 @@ function updateColors(isFemale) {
 
     // Toggle between FFMI scales based on gender
     function updateFFMIScale(isFemale) {
-        document.getElementById('ffmiScaleMale').style.display = isFemale ? 'none' : 'block';
-        document.getElementById('ffmiScaleFemale').style.display = isFemale ? 'block' : 'none';
+        document.getElementById('ffmiScaleMale').setAttribute('aria-hidden', isFemale ? 'true' : 'false');
+        document.getElementById('ffmiScaleFemale').setAttribute('aria-hidden', isFemale ? 'false' : 'true');
     }
 
     // Calculate BMR using Mifflin-St Jeor Equation

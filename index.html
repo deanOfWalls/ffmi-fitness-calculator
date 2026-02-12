@@ -7,43 +7,45 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true" hidden>☽</span>
+    </button>
+    <input type="checkbox" id="darkModeToggle" class="dark-mode-checkbox" aria-hidden="true" tabindex="-1" checked />
+
     <div class="container">
         <div class="main-content">
         <div class="inputs">
             <h1>All-in-One Fitness Calculator</h1>
-            
-            <!-- Gender toggle -->
+
             <div class="input-group">
                 <span>Male</span>
                 <label class="switch">
-                    <input type="checkbox" id="genderToggle"> <!-- Default to Male -->
+                    <input type="checkbox" id="genderToggle">
                     <span class="slider round"></span>
                 </label>
                 <span>Female</span>
             </div>
 
-            <!-- Unit system toggle -->
             <div class="input-group">
                 <span>Standard</span>
                 <label class="switch">
-                    <input type="checkbox" id="unitToggle"> <!-- Default to Standard -->
+                    <input type="checkbox" id="unitToggle">
                     <span class="slider round"></span>
                 </label>
                 <span>Metric</span>
             </div>
 
-            <!-- Height Slider -->
             <div class="input-group">
                 <label for="heightSlider">Height (<span id="heightUnitLabel">ft/in</span>):</label>
                 <div class="slider-container">
                     <button class="slider-btn" data-slider="heightSlider" data-direction="decrease" aria-label="Decrease">−</button>
-                    <input type="range" id="heightSlider" min="48" max="96" value="70"> <!-- Default to 5ft 10in -->
+                    <input type="range" id="heightSlider" min="48" max="96" value="70">
                     <button class="slider-btn" data-slider="heightSlider" data-direction="increase" aria-label="Increase">+</button>
                 </div>
                 <span id="heightValue">70</span>
             </div>
 
-            <!-- Weight Slider -->
             <div class="input-group">
                 <label for="weightSlider">Weight (<span id="weightUnitLabel">lbs</span>):</label>
                 <div class="slider-container">
@@ -54,13 +56,11 @@
                 <span id="weightValue">188</span>
             </div>
 
-            <!-- Goal Weight Input -->
             <div class="input-group">
                 <label for="goalWeightInput">Goal Weight (<span id="goalWeightUnitLabel">lbs</span>):</label>
                 <input type="number" id="goalWeightInput" min="80" max="400" step="0.5" placeholder="Enter goal weight">
             </div>
 
-            <!-- Neck Circumference -->
             <div class="input-group">
                 <label for="neckSlider">Neck Circumference (<span id="neckUnitLabel">inches</span>):</label>
                 <div class="slider-container">
@@ -71,7 +71,6 @@
                 <span id="neckValue">15</span>
             </div>
 
-            <!-- Waist Circumference -->
             <div class="input-group">
                 <label for="waistSlider">Waist at naval (<span id="waistUnitLabel">inches</span>):</label>
                 <div class="slider-container">
@@ -82,7 +81,6 @@
                 <span id="waistValue">34</span>
             </div>
 
-            <!-- Hip Circumference -->
             <div class="input-group" id="hipsGroup">
                 <label for="hipsSlider">Hip Circumference (<span id="hipsUnitLabel">inches</span>):</label>
                 <div class="slider-container">
@@ -90,10 +88,9 @@
                     <input type="range" id="hipsSlider" min="20" max="60" value="40" disabled>
                     <button class="slider-btn" data-slider="hipsSlider" data-direction="increase" aria-label="Increase">+</button>
                 </div>
-                <span id="hipsValue">0 in</span> <!-- Default to 0 and disabled for males -->
+                <span id="hipsValue">0</span>
             </div>
 
-            <!-- Activity Level -->
             <div class="input-group">
                 <label for="activityLevel">Activity Level:</label>
                 <select id="activityLevel">
@@ -106,83 +103,44 @@
             </div>
         </div>
 
-        <!-- FFMI, BMI, Body Fat Results -->
         <div class="ffmi-results">
             <h2>FFMI, BMI, and Body Fat</h2>
             <div class="result-group">
-                <p><strong class="tooltip-trigger" data-tooltip="Fat Free Mass (FFM): The total mass of all non-fat components in your body, including muscle, bone, organs, and water. This represents your lean body mass.">Fat Free Mass:<span class="tooltip-text"></span></strong> <span id="fatFreeMass">0</span> <span id="fatFreeMassUnit">lbs</span></p>
-                <p><strong class="tooltip-trigger" data-tooltip="Body Fat Percentage: The proportion of your total body weight that is composed of fat tissue. Calculated using the U.S. Navy method based on body measurements.">Body Fat:<span class="tooltip-text"></span></strong> <span id="bodyFatCalc">0</span></p>
-                <p><strong class="tooltip-trigger" data-tooltip="Body Mass Index (BMI): A measure of body fat based on height and weight. Categories: Underweight (<18.5), Normal (18.5-24.9), Overweight (25-29.9), Obese (≥30).">BMI:<span class="tooltip-text"></span></strong> <span id="bmi">0</span> <span id="bmiCategory"></span></p>
-                <p><strong class="tooltip-trigger" data-tooltip="Fat-Free Mass Index (FFMI): A measure of muscle mass relative to height, calculated as fat-free mass divided by height squared. Higher values indicate more muscle mass.">FFMI:<span class="tooltip-text"></span></strong> <span id="ffmi">0</span></p>
-                <p><strong class="tooltip-trigger" data-tooltip="Normalized FFMI: FFMI adjusted for height to allow better comparison across different body sizes. This accounts for the fact that taller individuals naturally have higher FFMI values.">Normalized FFMI:<span class="tooltip-text"></span></strong> <span id="adjustedFfmi">0</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Fat Free Mass (FFM): The total mass of all non-fat components in your body.">Fat Free Mass:<span class="tooltip-text"></span></strong> <span id="fatFreeMass">0</span> <span id="fatFreeMassUnit">lbs</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Body Fat Percentage: Calculated using the U.S. Navy method.">Body Fat:<span class="tooltip-text"></span></strong> <span id="bodyFatCalc">0</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Body Mass Index (BMI): Underweight (&lt;18.5), Normal (18.5-24.9), Overweight (25-29.9), Obese (≥30).">BMI:<span class="tooltip-text"></span></strong> <span id="bmi">0</span> <span id="bmiCategory"></span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Fat-Free Mass Index (FFMI): Muscle mass relative to height.">FFMI:<span class="tooltip-text"></span></strong> <span id="ffmi">0</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Normalized FFMI: FFMI adjusted for height.">Normalized FFMI:<span class="tooltip-text"></span></strong> <span id="adjustedFfmi">0</span></p>
             </div>
         </div>
 
-        <!-- TDEE and Calorie Results -->
         <div class="tdee-results">
             <h2>TDEE and Weight Loss Calories</h2>
             <div class="result-group">
-                <p><strong class="tooltip-trigger" data-tooltip="Basal Metabolic Rate (BMR): The number of calories your body burns at rest to maintain basic physiological functions like breathing, circulation, and cell production. Calculated using the Mifflin-St Jeor equation.">BMR:<span class="tooltip-text"></span></strong> <span id="bmr">0</span> <span id="bmrUnit">calories/day</span></p>
-                <p><strong class="tooltip-trigger" data-tooltip="Total Daily Energy Expenditure (TDEE): The total number of calories you burn per day, including BMR plus calories burned through physical activity. This is your maintenance calorie level.">TDEE:<span class="tooltip-text"></span></strong> <span id="tdee">0</span> <span id="tdeeUnit">calories/day</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Basal Metabolic Rate (BMR): Calories burned at rest.">BMR:<span class="tooltip-text"></span></strong> <span id="bmr">0</span> <span id="bmrUnit">calories/day</span></p>
+                <p><strong class="tooltip-trigger" data-tooltip="Total Daily Energy Expenditure (TDEE): Maintenance calories.">TDEE:<span class="tooltip-text"></span></strong> <span id="tdee">0</span> <span id="tdeeUnit">calories/day</span></p>
                 <p><strong><span id="weightChangeLabel1">Weight Loss</span> (1 lb/week):</strong> <span id="weightLoss1lb">0</span> <span id="weightLoss1lbUnit">calories/day</span> <span id="weeksToGoal1lb" class="weeks-to-goal"></span></p>
                 <p><strong><span id="weightChangeLabel2">Weight Loss</span> (2 lb/week):</strong> <span id="weightLoss2lb">0</span> <span id="weightLoss2lbUnit">calories/day</span> <span id="weeksToGoal2lb" class="weeks-to-goal"></span></p>
             </div>
         </div>
 
-        <!-- Horizontal FFMI Scale -->
         <div class="ffmi-horizontal">
-            <!-- Male FFMI Scale -->
-            <div class="ffmi-scale" id="ffmiScaleMale">
+            <div class="ffmi-scale" id="ffmiScaleMale" aria-hidden="false">
                 <div class="ffmi-indicator" id="ffmiIndicatorMale"></div>
                 <div class="ffmi-labels-below">
-                    <span>Skinny</span>
-                    <span>Average</span>
-                    <span>Fat</span>
-                    <span>Int. Gymgoer</span>
-                    <span>Adv. Gymgoer</span>
-                    <span>Bodybuilder</span>
+                    <span>Skinny</span><span>Average</span><span>Fat</span><span>Int. Gymgoer</span><span>Adv. Gymgoer</span><span>Bodybuilder</span>
                 </div>
-                <!-- Numbers below the bar -->
                 <div class="ffmi-numbers-below">
-                    <span>16</span>
-                    <span>17</span>
-                    <span>18</span>
-                    <span>19</span>
-                    <span>20</span>
-                    <span>21</span>
-                    <span>22</span>
-                    <span>23</span>
-                    <span>24</span>
-                    <span>25</span>
-                    <span>26</span>
-                    <span>27</span>
-                    <span>28</span>
-                    <span>29</span>
-                    <span>30</span>
+                    <span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span>
                 </div>
             </div>
-
-            <!-- Female FFMI Scale -->
-            <div class="ffmi-scale" id="ffmiScaleFemale" style="display: none;">
+            <div class="ffmi-scale" id="ffmiScaleFemale" aria-hidden="true">
                 <div class="ffmi-indicator" id="ffmiIndicatorFemale"></div>
                 <div class="ffmi-labels-below">
-                    <span>Skinny</span>
-                    <span>Average</span>
-                    <span>Fat</span>
-                    <span>Int. Gym</span>
-                    <span>Adv. Gym</span>
-                    <span>Bodybuilder</span>
+                    <span>Skinny</span><span>Average</span><span>Fat</span><span>Int. Gym</span><span>Adv. Gym</span><span>Bodybuilder</span>
                 </div>
-                <!-- Numbers below the bar -->
                 <div class="ffmi-numbers-below">
-                    <span>14</span>
-                    <span>15</span>
-                    <span>16</span>
-                    <span>17</span>
-                    <span>18</span>
-                    <span>19</span>
-                    <span>20</span>
-                    <span>21</span>
+                    <span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
                 </div>
             </div>
         </div>
@@ -190,7 +148,7 @@
 
         <div class="history-panel">
             <h2 class="history-title">History</h2>
-            <p class="history-hint">Select a day to view that snapshot. Only one can be selected.</p>
+            <p class="history-hint">Select a day to view that snapshot.</p>
             <div class="history-list" id="historyList"></div>
         </div>
     </div>

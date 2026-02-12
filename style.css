@@ -1,29 +1,63 @@
-/* General styling */
+/* ========== COLOR PALETTE (only change from commit) ========== */
+:root {
+    --primary-color: #4a90e2;
+    --primary-color-light: #dbeaff;
+    --slider-color: #4a90e2;
+    --bg-page: #dbeaff;
+    --bg-shell: #f7f7f7;
+    --bg-card: #ffffff;
+    --text: #222;
+    --text-muted: #5a5a5a;
+    --border: rgba(0, 0, 0, 0.12);
+    --hover: rgba(0, 0, 0, 0.06);
+    --tooltip-bg: #333;
+    --tooltip-text: #fff;
+}
+
+body.female {
+    --primary-color: #ff8ab8;
+    --primary-color-light: #ffe4f0;
+    --slider-color: #ff8ab8;
+}
+
+body.dark {
+    --bg-page: #0b0f16;
+    --bg-shell: #121826;
+    --bg-card: #161f31;
+    --text: #e9eef7;
+    --text-muted: #a7b4cc;
+    --border: rgba(255, 255, 255, 0.1);
+    --hover: rgba(255, 255, 255, 0.06);
+    --tooltip-bg: #1a2332;
+    --tooltip-text: #e9eef7;
+}
+
+/* ========== LAYOUT (commit structure – one panel) ========== */
+* { box-sizing: border-box; }
 
 body {
     font-family: Arial, sans-serif;
-    background-color: var(--primary-color-light); /* Gender-based background */
+    background-color: var(--bg-page);
+    color: var(--text);
     margin: 0;
     padding: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    overflow: hidden; /* Prevent body scroll */
+    min-height: 100vh;
 }
 
 .container {
     display: flex;
     flex-direction: row;
-    background: #f7f7f7; /* Off-white container background */
+    background: var(--bg-shell);
     padding: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     width: 95%;
     max-width: 1200px;
     border-radius: 10px;
-    background-color: #f7f7f7;
-    transform: scale(0.95);
-    transform-origin: center center;
+    overflow: visible;
+    padding-bottom: 20px;
 }
 
 .main-content {
@@ -36,7 +70,7 @@ body {
 .history-panel {
     width: 220px;
     flex-shrink: 0;
-    border-left: 1px solid rgba(0, 0, 0, 0.12);
+    border-left: 1px solid var(--border);
     padding-left: 12px;
     margin-left: 12px;
     display: flex;
@@ -47,12 +81,12 @@ body {
 .history-title {
     font-size: 1.1em;
     margin: 0 0 6px 0;
-    color: #333;
+    color: var(--text);
 }
 
 .history-hint {
     font-size: 0.75em;
-    color: #666;
+    color: var(--text-muted);
     margin: 0 0 10px 0;
     line-height: 1.3;
 }
@@ -68,15 +102,21 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 0;
+    padding: 6px 4px;
     cursor: pointer;
     font-size: 0.9em;
     border-radius: 4px;
-    padding-left: 4px;
 }
 
 .history-item:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: var(--hover);
+}
+
+.history-item.is-selected {
+    background: var(--hover);
+    border-left: 3px solid var(--primary-color);
+    padding-left: 6px;
+    margin-left: -2px;
 }
 
 .history-item input[type="radio"] {
@@ -94,19 +134,18 @@ body {
     text-overflow: ellipsis;
 }
 
-/* Make the container dynamically scale based on the screen size */
 @media (max-height: 900px) {
-    .container {
-        transform: scale(0.85); /* Scale down for smaller heights */
-    }
+    .container { transform: scale(0.95); transform-origin: center center; }
 }
-
 @media (max-height: 800px) {
-    .container {
-        transform: scale(0.75); /* Scale further for smaller heights */
-    }
+    .container { transform: scale(0.85); transform-origin: center center; }
+}
+@media (max-width: 700px) {
+    .container { flex-direction: column; }
+    .history-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); padding-left: 0; margin-left: 0; padding-top: 12px; margin-top: 12px; max-height: 280px; }
 }
 
+/* ========== INPUTS (one block, no extra panels) ========== */
 .input-group {
     margin-bottom: 10px;
 }
@@ -115,13 +154,14 @@ h1 {
     text-align: center;
     margin: 0 0 15px 0;
     font-size: 1.5em;
-    color: #333;
+    color: var(--text);
     font-weight: bold;
 }
 
 label {
     font-weight: bold;
-    font-size: 0.9em; /* Slightly smaller text */
+    font-size: 0.9em;
+    color: var(--text);
 }
 
 .slider-container {
@@ -131,6 +171,7 @@ label {
     width: 100%;
 }
 
+/* Pill buttons = circles, 28×28 (commit sizing) */
 .slider-btn {
     background-color: transparent;
     color: var(--primary-color);
@@ -167,8 +208,8 @@ label {
 .slider-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
-    border-color: #ccc;
-    color: #ccc;
+    border-color: var(--text-muted);
+    color: var(--text-muted);
 }
 
 .slider-btn:disabled:hover {
@@ -182,27 +223,27 @@ label {
     appearance: none;
     height: 6px;
     border-radius: 5px;
-    background: var(--slider-color); /* Dynamic slider color */
+    background: var(--slider-color);
     outline: none;
 }
 
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px; /* Change the width of the thumb */
-    height: 20px; /* Change the height of the thumb */
-    background: white;
-    border-radius: 50%; /* This makes the thumb circular */
-    border: 2px solid var(--primary-color); /* Add a border matching the slider color */
+    width: 20px;
+    height: 20px;
+    background: var(--bg-card);
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
     cursor: pointer;
 }
 
 input[type="range"]::-moz-range-thumb {
-    width: 20px; /* Change the width of the thumb */
-    height: 20px; /* Change the height of the thumb */
-    background: white;
-    border-radius: 50%; /* This makes the thumb circular */
-    border: 2px solid var(--primary-color); /* Add a border matching the slider color */
+    width: 20px;
+    height: 20px;
+    background: var(--bg-card);
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
     cursor: pointer;
 }
 
@@ -210,11 +251,12 @@ input[type="range"]:focus {
     outline: none;
 }
 
+/* Toggle switch */
 .switch {
     position: relative;
     display: inline-block;
     width: 45px;
-    height: 24px; /* Adjust the height */
+    height: 24px;
 }
 
 .switch input {
@@ -224,10 +266,10 @@ input[type="range"]:focus {
 }
 
 .slider.round {
-    border-radius: 24px; /* Round the entire slider */
+    border-radius: 24px;
 }
 
-.slider {
+.switch .slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -236,19 +278,19 @@ input[type="range"]:focus {
     bottom: 0;
     background-color: var(--primary-color);
     transition: 0.4s;
-    border-radius: 24px; /* Round the background slider */
+    border-radius: 24px;
 }
 
-.slider:before {
+.switch .slider:before {
     position: absolute;
     content: "";
-    height: 20px; /* Adjust the size of the slider */
-    width: 20px; /* Make it circular */
+    height: 20px;
+    width: 20px;
     left: 2px;
     bottom: 2px;
-    background-color: white;
+    background-color: var(--bg-card);
     transition: 0.4s;
-    border-radius: 50%; /* This makes the thumb circular */
+    border-radius: 50%;
 }
 
 input:checked + .slider {
@@ -256,30 +298,74 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-    transform: translateX(22px); /* Move the circular thumb */
+    transform: translateX(22px);
 }
 
-/* FFMI bar and indicator with bounds */
+/* ========== Theme toggle + dark checkbox ========== */
+.theme-toggle {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 1000;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.theme-toggle:hover {
+    color: var(--primary-color);
+}
+
+.dark-mode-checkbox {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+body.dark .theme-icon-sun { display: none !important; }
+body.dark .theme-icon-moon { display: inline !important; }
+body.dark .theme-icon-moon[hidden] { display: inline !important; }
+body:not(.dark) .theme-icon-moon { display: none !important; }
+
+/* ========== FFMI scale ========== */
 .ffmi-scale {
     position: relative;
     height: 20px;
     width: 100%;
-    background: linear-gradient(to right, 
-        rgba(211, 211, 211, 0.8),   /* Light Gray for Skinny */
-        rgba(0, 128, 128, 0.8),     /* Teal for Average */
-        rgba(255, 165, 0, 0.8),     /* Orange for Fat */
-        rgba(218, 165, 32, 0.8),    /* Dark Yellow for Int. Gym */
-        rgba(220, 20, 60, 0.8),     /* Crimson Red for Adv. Gym */
-        rgba(0, 0, 139, 0.8)        /* Dark Blue for Bodybuilder */
+    background: linear-gradient(to right,
+        rgba(211, 211, 211, 0.8),
+        rgba(0, 128, 128, 0.8),
+        rgba(255, 165, 0, 0.8),
+        rgba(218, 165, 32, 0.8),
+        rgba(220, 20, 60, 0.8),
+        rgba(0, 0, 139, 0.8)
     );
     border-radius: 5px;
     margin-top: 10px;
 }
 
+.ffmi-scale[aria-hidden="true"] {
+    display: none;
+}
 
+.ffmi-scale[aria-hidden="false"] {
+    display: block;
+}
 
 .ffmi-horizontal {
-    margin-bottom: 10px; /* Add margin to ensure numbers aren't cut off */
+    margin-bottom: 10px;
 }
 
 .ffmi-numbers-below {
@@ -289,12 +375,12 @@ input:checked + .slider:before {
     margin-top: 8px;
     margin-bottom: 5px;
     width: 100%;
-    color: #333;
-    padding: 0 2px; /* Small padding to prevent edge numbers from being cut off */
+    color: var(--text);
+    padding: 0 2px;
 }
 
 .ffmi-numbers-below span {
-    min-width: 20px; /* Ensure numbers have enough space */
+    min-width: 20px;
     text-align: center;
 }
 
@@ -302,52 +388,30 @@ input:checked + .slider:before {
     display: flex;
     justify-content: space-between;
     font-size: 0.9em;
-    margin-top: 5px; /* Adjusted margin to fit inside the container */
-    padding-left: 10px; /* Ensure padding to prevent text overflow */
+    margin-top: 5px;
+    padding-left: 10px;
     padding-right: 10px;
 }
 
 .ffmi-labels-below span {
-    color: white; /* Use white text for better contrast */
+    color: white;
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6); /* Light text shadow to improve readability */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .ffmi-indicator {
     position: absolute;
-    width: 12px; 
-    height: 25px; 
-    background-color: rgba(255, 255, 255, 0.6); /* Lower opacity for better visibility behind */
-    border: 2px solid rgba(0, 0, 0, 0.8); 
-    border-radius: 5px; 
-    top: -5px; /* Align it just above the text labels */
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.5); 
+    width: 12px;
+    height: 25px;
+    background-color: rgba(255, 255, 255, 0.6);
+    border: 2px solid var(--primary-color);
+    border-radius: 5px;
+    top: -5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
-
-
-/* Prevent text overflow outside container */
-.container {
-    overflow: visible;
-    padding-bottom: 20px; /* Add extra padding for numbers below FFMI scale */
-}
-
-/* Graying out the hips slider for male */
 #hipsSlider:disabled {
     opacity: 0.5;
-}
-
-/* Dynamic color variables for gender themes */
-:root {
-    --primary-color: #4a90e2; /* Softer blue for male */
-    --primary-color-light: #dbeaff; /* Lighter blue background */
-    --slider-color: #4a90e2; /* Slider color for male */
-}
-
-body.female {
-    --primary-color: #ff8ab8; /* Softer pink for female */
-    --primary-color-light: #ffe4f0; /* Lighter pink background */
-    --slider-color: #ff8ab8; /* Slider color for female */
 }
 
 .grayed-out {
@@ -355,72 +419,68 @@ body.female {
     pointer-events: none;
 }
 
-/* Activity Level Selector */
+/* ========== Select + number input ========== */
 select {
     width: 100%;
     padding: 8px;
     border: 2px solid var(--primary-color);
     border-radius: 5px;
-    background-color: white;
+    background-color: var(--bg-card);
+    color: var(--text);
     font-size: 0.9em;
     cursor: pointer;
     outline: none;
-    transition: border-color 0.3s;
+    transition: border-color 0.2s;
 }
 
-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
-}
-
-select:hover {
+select:focus, select:hover {
     border-color: var(--primary-color);
 }
 
-/* Goal Weight Input */
 input[type="number"] {
     width: 100%;
     padding: 8px;
     border: 2px solid var(--primary-color);
     border-radius: 5px;
-    background-color: white;
+    background-color: var(--bg-card);
+    color: var(--text);
     font-size: 0.9em;
     outline: none;
-    transition: border-color 0.3s;
+    transition: border-color 0.2s;
     box-sizing: border-box;
 }
 
-input[type="number"]:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
-}
-
-input[type="number"]:hover {
+input[type="number"]:focus, input[type="number"]:hover {
     border-color: var(--primary-color);
 }
 
-/* Weeks to Goal Display */
+input[type="number"]::placeholder {
+    color: var(--text-muted);
+}
+
+/* ========== Results (single block styling) ========== */
 .weeks-to-goal {
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.85em;
     font-style: italic;
     margin-left: 8px;
 }
 
-/* Results sections */
-.ffmi-results, .tdee-results {
+.ffmi-results,
+.tdee-results {
     margin-top: 15px;
     padding: 10px;
-    background-color: white;
+    background-color: var(--bg-card);
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.ffmi-results h2, .tdee-results h2 {
+.ffmi-results h2,
+.tdee-results h2 {
     margin-top: 0;
     margin-bottom: 10px;
     font-size: 1.1em;
-    color: #333;
+    color: var(--text);
 }
 
 .result-group {
@@ -432,9 +492,7 @@ input[type="number"]:hover {
 .result-group p {
     margin: 0;
     font-size: 0.9em;
-}
-
-.result-group p {
+    color: var(--text);
     position: relative;
 }
 
@@ -443,38 +501,26 @@ input[type="number"]:hover {
     text-decoration: underline;
     text-decoration-style: dotted;
     text-underline-offset: 2px;
-    position: relative;
 }
 
-/* BMI Category Colors */
-#bmiCategory.bmi-underweight {
-    color: #ff8c00; /* Orange for underweight */
+/* BMI badges (script uses .badge--good / .badge--warn / .badge--bad) */
+#bmiCategory.badge {
     font-weight: bold;
+    padding: 0 6px;
 }
+#bmiCategory.badge--good { color: #28a745; }
+#bmiCategory.badge--warn { color: #d97706; }
+#bmiCategory.badge--bad { color: #dc3545; }
 
-#bmiCategory.bmi-normal {
-    color: #28a745; /* Green for normal */
-    font-weight: bold;
-}
-
-#bmiCategory.bmi-overweight {
-    color: #ff8c00; /* Orange for overweight */
-    font-weight: bold;
-}
-
-#bmiCategory.bmi-obese {
-    color: #dc3545; /* Red for obese */
-    font-weight: bold;
-}
-
+/* Tooltips */
 .result-group p strong.tooltip-trigger .tooltip-text {
     display: none;
     position: absolute;
     left: calc(100% + 10px);
     top: 0;
     padding: 8px 12px;
-    background-color: #333;
-    color: white;
+    background-color: var(--tooltip-bg);
+    color: var(--tooltip-text);
     border-radius: 4px;
     font-size: 0.85em;
     font-weight: normal;
@@ -494,7 +540,7 @@ input[type="number"]:hover {
     height: 0;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
-    border-right: 6px solid #333;
+    border-right: 6px solid var(--tooltip-bg);
 }
 
 .result-group p strong.tooltip-trigger:hover .tooltip-text {
