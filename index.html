@@ -40,10 +40,12 @@
                 <label for="heightSlider">Height (<span id="heightUnitLabel">ft/in</span>):</label>
                 <div class="slider-container">
                     <button class="slider-btn" data-slider="heightSlider" data-direction="decrease" aria-label="Decrease">−</button>
-                    <input type="range" id="heightSlider" min="48" max="96" value="70">
+                    <input type="range" id="heightSlider" min="48" max="96" step="0.1" value="70">
                     <button class="slider-btn" data-slider="heightSlider" data-direction="increase" aria-label="Increase">+</button>
                 </div>
-                <span id="heightValue">70</span>
+                <span id="heightValue" class="height-display">5' 10"</span>
+                <label for="heightInput" class="height-input-label">Or enter exact height (<span id="heightInputUnitLabel">inches</span>):</label>
+                <input type="number" id="heightInput" min="48" max="96" step="0.1" value="70.0" inputmode="decimal" aria-label="Exact height">
             </div>
 
             <div class="input-group">
@@ -153,6 +155,6 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>

@@ -458,6 +458,25 @@ input[type="number"]::placeholder {
     color: var(--text-muted);
 }
 
+.height-display {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.95em;
+    color: var(--text-muted);
+}
+
+.height-input-label {
+    display: block;
+    margin-top: 8px;
+    font-weight: bold;
+    font-size: 0.85em;
+    color: var(--text);
+}
+
+#heightInput {
+    margin-top: 4px;
+}
+
 /* ========== Results (single block styling) ========== */
 .weeks-to-goal {
     color: var(--text-muted);

@@ -1,7 +1,19 @@
+import { computeBodyMetrics } from './lib/calculations.mjs';
+import {
+    clampHeightInches,
+    formatHeightStandard,
+    formatHeightMetric,
+    heightInchesToInputValue,
+    parseHeightInput,
+    getHeightInputBounds,
+} from './lib/height-utils.mjs';
+
 document.addEventListener('DOMContentLoaded', function () {
     const genderToggle = document.getElementById('genderToggle'); // Male/Female toggle
     const unitToggle = document.getElementById('unitToggle'); // Standard/Metric toggle
     const heightSlider = document.getElementById('heightSlider');
+    const heightInput = document.getElementById('heightInput');
+    const heightInputUnitLabel = document.getElementById('heightInputUnitLabel');
     const weightSlider = document.getElementById('weightSlider');
     const neckSlider = document.getElementById('neckSlider');
     const waistSlider = document.getElementById('waistSlider');
@@ -52,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Load slider values with defaults from HTML
         heightSlider.value = saved.height || heightSlider.value;
+        heightSlider.value = String(clampHeightInches(heightSlider.value));
         weightSlider.value = saved.weight || weightSlider.value;
         neckSlider.value = saved.neck || neckSlider.value;
         waistSlider.value = saved.waist || waistSlider.value;
@@ -90,6 +103,8 @@ document.addEventListener('DOMContentLoaded', function () {
         genderToggle.checked = state.gender === true || state.gender === 'true';
         unitToggle.checked = state.unit === true || state.unit === 'true';
         heightSlider.value = state.height || heightSlider.value;
+        heightSlider.value = String(clampHeightInches(heightSlider.value));
+        syncHeightInputFromSlider();
         weightSlider.value = state.weight || weightSlider.value;
         neckSlider.value = state.neck || neckSlider.value;
         waistSlider.value = state.waist || waistSlider.value;
@@ -157,6 +172,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Today's live state (restored when switching back from a past day)
     let todayLiveState = null;
+    let syncingHeight = false;
+
+    function updateHeightInputBounds() {
+        const bounds = getHeightInputBounds(unitToggle.checked);
+        heightInput.min = String(bounds.min);
+        heightInput.max = String(bounds.max);
+        heightInput.step = String(bounds.step);
+        heightInputUnitLabel.textContent = unitToggle.checked ? 'cm' : 'inches';
+    }
+
+    function syncHeightInputFromSlider() {
+        if (syncingHeight) return;
+        syncingHeight = true;
+        heightInput.value = heightInchesToInputValue(heightSlider.value, unitToggle.checked);
+        syncingHeight = false;
+    }
+
+    function applyHeightFromManualInput() {
+        if (syncingHeight) return;
+        const inches = parseHeightInput(heightInput.value, unitToggle.checked);
+        if (inches == null) return;
+        syncingHeight = true;
+        heightSlider.value = String(inches);
+        syncingHeight = false;
+        saveValues();
+        updateUI();
+    }
 
     function formatHistoryDate(isoKey) {
         const [y, m, d] = isoKey.split('-').map(Number);
@@ -202,6 +244,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load saved values
     loadSavedValues();
+    updateHeightInputBounds();
+    syncHeightInputFromSlider();
     
     // Set initial goal weight input min/max based on unit system
     if (unitToggle.checked) {
@@ -305,6 +349,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         saveValues(); // Save to localStorage
+        updateHeightInputBounds();
+        syncHeightInputFromSlider();
         updateUI(); // Update the display without moving sliders
     });
 
@@ -316,8 +362,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Update input listeners - save values on change
     heightSlider.addEventListener('input', function() {
+        syncHeightInputFromSlider();
         saveValues();
         updateUI();
+    });
+    heightInput.addEventListener('input', function() {
+        applyHeightFromManualInput();
+    });
+    heightInput.addEventListener('change', function() {
+        applyHeightFromManualInput();
     });
     weightSlider.addEventListener('input', function() {
         saveValues();
@@ -394,12 +447,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Update height display with correct suffix (but don't change the slider position)
         if (isMetric) {
-            const heightCm = (heightInches * 2.54).toFixed(1); // Convert inches to cm
-            document.getElementById('heightValue').textContent = `${heightCm} cm`;
+            document.getElementById('heightValue').textContent = formatHeightMetric(heightInches);
         } else {
-            const feet = Math.floor(heightInches / 12);
-            const inches = Math.round(heightInches % 12);
-            document.getElementById('heightValue').textContent = `${feet}' ${inches}"`;
+            document.getElementById('heightValue').textContent = formatHeightStandard(heightInches);
+        }
+        if (!syncingHeight) {
+            syncHeightInputFromSlider();
         }
 
         // Update weight display with correct suffix (but don't change the slider position)
@@ -455,20 +508,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function calculateBodyMetrics(isMetric, heightInches, weightLbs, neckInches, waistInches, hipsInches, isFemale, activityMultiplier, goalWeightLbs = null) {
-        // Convert height/weight to metric if necessary
-        const heightMeters = heightInches * 0.0254;
-        const heightCm = heightInches * 2.54;
-        const weightKg = weightLbs / 2.2;
+        const metrics = computeBodyMetrics({
+            isFemale,
+            heightInches,
+            weightLbs,
+            neckInches,
+            waistInches,
+            hipsInches,
+            activityMultiplier,
+            goalWeightLbs,
+        });
 
-        // BMI Calculation
-        // Standard BMI formula: weight(kg) / height(m)² or weight(lbs) × 703 / height(in)²
-        const bmiValue = isMetric
-            ? (weightKg / Math.pow(heightMeters, 2))
-            : ((weightLbs * 703) / Math.pow(heightInches, 2));
-        
+        const bmiValue = metrics.bmiValue;
         document.getElementById('bmi').textContent = bmiValue.toFixed(2);
         const bmiCategoryElement = document.getElementById('bmiCategory');
-        const category = getBMICategory(bmiValue);
+        const category = metrics.bmiCategory;
         bmiCategoryElement.textContent = category;
         bmiCategoryElement.classList.remove('badge--good', 'badge--warn', 'badge--bad');
         bmiCategoryElement.classList.add('badge');
@@ -480,23 +534,13 @@ document.addEventListener('DOMContentLoaded', function () {
             bmiCategoryElement.classList.add('badge--bad');
         }
 
-        // Body Fat Calculation - U.S. Navy method
-        // Note: Body fat % depends on waist, neck, hips (females), and height - NOT weight
-        // Ensure all values are valid numbers, use defaults if invalid
-        const validWaist = isNaN(waistInches) || waistInches <= 0 ? 34 : waistInches;
-        const validNeck = isNaN(neckInches) || neckInches <= 0 ? 15 : neckInches;
-        const validHeight = isNaN(heightInches) || heightInches <= 0 ? 70 : heightInches;
-        const validHips = isFemale ? (isNaN(hipsInches) || hipsInches <= 0 ? 40 : hipsInches) : 0;
-        
-        const bodyFatPercentageRaw = calculateBodyFatPercentage(isFemale, validWaist, validNeck, validHips, validHeight);
-        // Clamp body fat percentage to reasonable range (0-70% to handle edge cases)
-        const bodyFatPercentageClamped = Math.max(0, Math.min(70, bodyFatPercentageRaw));
-        const bodyFatPercentage = Math.round(bodyFatPercentageClamped); // Round to whole percentage
-        const fatFreeMass = weightLbs * (1 - (bodyFatPercentage / 100));
-        const ffmi = (fatFreeMass / 2.2) / Math.pow(heightMeters, 2);
-        const normalizedFfmi = ffmi + (6.3 * (1.8 - heightMeters));
+        const bodyFatPercentage = metrics.bodyFatPercentage;
+        const fatFreeMass = metrics.fatFreeMass;
+        const ffmi = metrics.ffmi;
+        const normalizedFfmi = metrics.normalizedFfmi;
+        const bmr = metrics.bmr;
+        const tdee = metrics.tdee;
 
-        // Update calculated values with proper units
         const fatFreeMassDisplay = isMetric ? (fatFreeMass / 2.2) : fatFreeMass;
         const fatFreeMassUnit = isMetric ? 'kg' : 'lbs';
         document.getElementById('fatFreeMass').textContent = fatFreeMassDisplay.toFixed(2);
@@ -505,78 +549,41 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('ffmi').textContent = ffmi.toFixed(2);
         document.getElementById('adjustedFfmi').textContent = normalizedFfmi.toFixed(2);
 
-        // Calculate BMR and TDEE
-        const bmr = calculateBMR(isFemale, weightKg, heightCm);
-        const tdee = bmr * activityMultiplier;
-        
         const label1 = document.getElementById('weightChangeLabel1');
         const label2 = document.getElementById('weightChangeLabel2');
         const weeksToGoal1lbElement = document.getElementById('weeksToGoal1lb');
         const weeksToGoal2lbElement = document.getElementById('weeksToGoal2lb');
-        
-        let cal1, cal2;
-        if (goalWeightLbs && goalWeightLbs > weightLbs) {
-            // Goal weight above current = weight gain (surplus: +500 cal for 1 lb/week, +1000 for 2 lb/week)
+
+        if (metrics.weightChangeMode === 'gain') {
             label1.textContent = 'Weight Gain';
             label2.textContent = 'Weight Gain';
-            cal1 = Math.round(tdee + 500);
-            cal2 = Math.round(tdee + 1000);
-            
-            const weightToGain = goalWeightLbs - weightLbs;
-            const weeks1lb = Math.ceil(weightToGain / 1);
-            const weeks2lb = Math.ceil(weightToGain / 2);
-            weeksToGoal1lbElement.textContent = `(~${weeks1lb} weeks to goal)`;
-            weeksToGoal2lbElement.textContent = `(~${weeks2lb} weeks to goal)`;
-        } else if (goalWeightLbs && goalWeightLbs < weightLbs) {
-            // Goal weight below current = weight loss (deficit)
-            label1.textContent = 'Weight Loss';
-            label2.textContent = 'Weight Loss';
-            cal1 = Math.max(0, Math.round(tdee - 500));
-            cal2 = Math.max(0, Math.round(tdee - 1000));
-            
-            const weightToLose = weightLbs - goalWeightLbs;
-            const weeks1lb = Math.ceil(weightToLose / 1);
-            const weeks2lb = Math.ceil(weightToLose / 2);
-            weeksToGoal1lbElement.textContent = `(~${weeks1lb} weeks to goal)`;
-            weeksToGoal2lbElement.textContent = `(~${weeks2lb} weeks to goal)`;
+            weeksToGoal1lbElement.textContent = `(~${metrics.weeks1lb} weeks to goal)`;
+            weeksToGoal2lbElement.textContent = `(~${metrics.weeks2lb} weeks to goal)`;
         } else {
-            // No goal or goal equals current: show weight loss options, no weeks
             label1.textContent = 'Weight Loss';
             label2.textContent = 'Weight Loss';
-            cal1 = Math.max(0, Math.round(tdee - 500));
-            cal2 = Math.max(0, Math.round(tdee - 1000));
-            weeksToGoal1lbElement.textContent = '';
-            weeksToGoal2lbElement.textContent = '';
+            if (metrics.weeks1lb != null) {
+                weeksToGoal1lbElement.textContent = `(~${metrics.weeks1lb} weeks to goal)`;
+                weeksToGoal2lbElement.textContent = `(~${metrics.weeks2lb} weeks to goal)`;
+            } else {
+                weeksToGoal1lbElement.textContent = '';
+                weeksToGoal2lbElement.textContent = '';
+            }
         }
 
         document.getElementById('bmr').textContent = Math.round(bmr);
         document.getElementById('tdee').textContent = Math.round(tdee);
-        document.getElementById('weightLoss1lb').textContent = cal1;
-        document.getElementById('weightLoss2lb').textContent = cal2;
+        document.getElementById('weightLoss1lb').textContent = metrics.cal1;
+        document.getElementById('weightLoss2lb').textContent = metrics.cal2;
 
-        // Update FFMI indicator (ensure it is overlayed on the color bar)
-        updateFFMIIndicator(ffmi, isFemale);
+        updateFFMIIndicator(ffmi, isFemale, metrics.ffmiIndicatorPosition);
     }
 
-    // Update FFMI indicator based on gender
-    function updateFFMIIndicator(ffmi, isFemale) {
-        let ffmiMin, ffmiMax;
-
-        // Adjust FFMI ranges based on gender
-        if (isFemale) {
-            ffmiMin = 14;
-            ffmiMax = 21;
-        } else {
-            ffmiMin = 16;
-            ffmiMax = 30;
-        }
-
-        // Place the indicator on the FFMI scale
-        const indicatorPosition = ((ffmi - ffmiMin) / (ffmiMax - ffmiMin)) * 100;
-
-        const ffmiIndicator = isFemale ? document.getElementById('ffmiIndicatorFemale') : document.getElementById('ffmiIndicatorMale');
-
-        ffmiIndicator.style.left = `${Math.max(0, Math.min(indicatorPosition, 99))}%`; // Ensure padding
+    function updateFFMIIndicator(ffmi, isFemale, indicatorPosition) {
+        const ffmiIndicator = isFemale
+            ? document.getElementById('ffmiIndicatorFemale')
+            : document.getElementById('ffmiIndicatorMale');
+        ffmiIndicator.style.left = `${indicatorPosition}%`;
     }
 
 // Sync accent with gender; style.css uses body.female for --primary-color / --slider-color
@@ -590,59 +597,10 @@ function updateColors(isFemale, isDark) {
 }
 
 
-    // Determine BMI category based on correct ranges
-    function getBMICategory(bmi) {
-        if (bmi < 18.5) return "Underweight";
-        if (bmi >= 18.5 && bmi < 25) return "Normal";
-        if (bmi >= 25 && bmi < 30) return "Overweight";
-        if (bmi >= 30) return "Obese";
-    }
-
-    // Calculate body fat percentage (U.S. Navy method)
-    // Formulas verified from official U.S. Navy body composition assessment
-    // Male: BF% = 86.010 × log10(waist - neck) - 70.041 × log10(height) + 36.76
-    // Female: BF% = 163.205 × log10(waist + hips - neck) - 97.684 × log10(height) - 78.387
-    function calculateBodyFatPercentage(isFemale, waist, neck, hips, height) {
-        if (isFemale) {
-            // Ensure hips is valid (not 0) for female calculation
-            const hipsValue = hips > 0 ? hips : 40; // Default to 40 if hips is 0 or invalid
-            const waistHipsNeck = waist + hipsValue - neck;
-            // Ensure the value is positive for log10 calculation
-            if (waistHipsNeck <= 0 || height <= 0) {
-                return 0; // Return 0 if calculation would be invalid
-            }
-            // U.S. Navy formula for females (all measurements in inches)
-            const bf = 163.205 * Math.log10(waistHipsNeck) - 97.684 * Math.log10(height) - 78.387;
-            return bf;
-        } else {
-            const waistNeck = waist - neck;
-            // Ensure the value is positive for log10 calculation
-            if (waistNeck <= 0 || height <= 0) {
-                return 0; // Return 0 if calculation would be invalid
-            }
-            // U.S. Navy formula for males (all measurements in inches)
-            const bf = 86.010 * Math.log10(waistNeck) - 70.041 * Math.log10(height) + 36.76;
-            return bf;
-        }
-    }
-
     // Toggle between FFMI scales based on gender
     function updateFFMIScale(isFemale) {
         document.getElementById('ffmiScaleMale').setAttribute('aria-hidden', isFemale ? 'true' : 'false');
         document.getElementById('ffmiScaleFemale').setAttribute('aria-hidden', isFemale ? 'false' : 'true');
-    }
-
-    // Calculate BMR using Mifflin-St Jeor Equation
-    // BMR = 10 * weight(kg) + 6.25 * height(cm) - 5 * age + gender_factor
-    // For simplicity, we'll use age 30 as default (most common use case)
-    // Male: +5, Female: -161
-    function calculateBMR(isFemale, weightKg, heightCm) {
-        const age = 30; // Default age, can be made configurable later
-        if (isFemale) {
-            return 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
-        } else {
-            return 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
-        }
     }
 
     // Initialize tooltips

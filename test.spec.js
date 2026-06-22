@@ -1,97 +1,186 @@
 const { test, expect } = require('@playwright/test');
-const path = require('path');
 
-test.describe('FFMI Calculator Tests', () => {
+test.describe('FFMI Calculator – UI', () => {
   test.beforeEach(async ({ page }) => {
-    const filePath = path.join(__dirname, 'index.html');
-    await page.goto(`file://${filePath}`);
+    await page.goto('/index.html');
+    await page.waitForFunction(() => {
+      const bmi = document.getElementById('bmi')?.textContent;
+      return bmi && parseFloat(bmi) > 0;
+    });
   });
 
-  test('sliders update values when moved', async ({ page }) => {
-    // Test height slider - 75 inches = 6' 3"
-    const heightSlider = page.locator('#heightSlider');
-    const heightValue = page.locator('#heightValue');
-    
-    await heightSlider.fill('75');
-    await page.waitForTimeout(100);
-    // Should display as 6' 3" in standard mode
-    await expect(heightValue).toContainText('6\' 3"');
-    
-    // Test weight slider
-    const weightSlider = page.locator('#weightSlider');
-    const weightValue = page.locator('#weightValue');
-    
-    await weightSlider.fill('200');
-    await page.waitForTimeout(100);
-    await expect(weightValue).toContainText('200');
+  test('page loads with title and main sections', async ({ page }) => {
+    await expect(page).toHaveTitle(/Body Fat, FFMI & BMI Calculator/);
+    await expect(page.locator('h1')).toHaveText('All-in-One Fitness Calculator');
+    await expect(page.locator('.ffmi-results')).toBeVisible();
+    await expect(page.locator('.tdee-results')).toBeVisible();
+    await expect(page.locator('.history-panel')).toBeVisible();
   });
 
-  test('gender toggle switches to female styling', async ({ page }) => {
-    const genderToggleLabel = page.locator('label.switch').first();
-    const body = page.locator('body');
+  test('sliders update displayed values', async ({ page }) => {
+    await page.locator('#heightSlider').fill('75');
+    await page.waitForTimeout(100);
+    await expect(page.locator('#heightValue')).toContainText('6\' 3"');
 
+    await page.locator('#weightSlider').fill('200');
+    await page.waitForTimeout(100);
+    await expect(page.locator('#weightValue')).toContainText('200');
+  });
+
+  test('height slider supports 0.1 inch precision', async ({ page }) => {
+    await page.locator('#heightSlider').fill('70.5');
+    await page.waitForTimeout(100);
+    await expect(page.locator('#heightValue')).toContainText('5\' 10.5"');
+    await expect(page.locator('#heightInput')).toHaveValue('70.5');
+  });
+
+  test('height manual input syncs to slider and display', async ({ page }) => {
+    await page.locator('#heightInput').fill('72.3');
+    await page.locator('#heightInput').blur();
+    await page.waitForTimeout(100);
+    await expect(page.locator('#heightSlider')).toHaveValue('72.3');
+    await expect(page.locator('#heightValue')).toContainText('6\' 0.3"');
+  });
+
+  test('height slider syncs to manual input', async ({ page }) => {
+    await page.locator('#heightSlider').fill('68.7');
+    await page.waitForTimeout(100);
+    await expect(page.locator('#heightInput')).toHaveValue('68.7');
+  });
+
+  test('height +/- buttons adjust by 0.1 inch', async ({ page }) => {
+    await page.locator('#heightSlider').fill('70');
+    await page.waitForTimeout(50);
+    await page.locator('[data-slider="heightSlider"][data-direction="increase"]').click();
+    await page.waitForTimeout(100);
+    await expect(page.locator('#heightSlider')).toHaveValue('70.1');
+    await expect(page.locator('#heightInput')).toHaveValue('70.1');
+  });
+
+  test('gender toggle switches accent and female styling', async ({ page }) => {
     let accent = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
     );
-    expect(accent).toBe('#3FA2FF'); // Male blue
+    expect(accent).toBe('#3FA2FF');
 
-    await genderToggleLabel.click();
+    await page.locator('label.switch').first().click();
     await page.waitForTimeout(200);
 
     accent = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
     );
-    expect(accent).toBe('#e891b0'); // Female pink
-
-    const bgColor = await body.evaluate((el) => window.getComputedStyle(el).backgroundColor);
-    expect(bgColor).toContain('rgb');
-  });
-
-  test('calculations update when sliders change', async ({ page }) => {
-    const weightSlider = page.locator('#weightSlider');
-    const bmi = page.locator('#bmi');
-    
-    // Change weight
-    await weightSlider.fill('250');
-    await page.waitForTimeout(100);
-    
-    // BMI should update (not be 0)
-    const bmiValue = await bmi.textContent();
-    expect(parseFloat(bmiValue)).toBeGreaterThan(0);
+    expect(accent).toBe('#e891b0');
+    await expect(page.locator('body')).toHaveClass(/female/);
   });
 
   test('female toggle enables hips slider', async ({ page }) => {
-    // Click the label/switch instead of the hidden checkbox
-    const genderToggleLabel = page.locator('label.switch').first();
-    const hipsSlider = page.locator('#hipsSlider');
-    
-    // Initially disabled (male)
-    await expect(hipsSlider).toBeDisabled();
-    
-    // Toggle to female by clicking the switch label
-    await genderToggleLabel.click();
+    await expect(page.locator('#hipsSlider')).toBeDisabled();
+    await page.locator('label.switch').first().click();
     await page.waitForTimeout(200);
-    
-    // Should be enabled
-    await expect(hipsSlider).toBeEnabled();
+    await expect(page.locator('#hipsSlider')).toBeEnabled();
   });
 
-  test('TDEE calculations work', async ({ page }) => {
-    await page.waitForTimeout(500); // Wait for initial calculations
-    
-    const tdee = page.locator('#tdee');
-    const tdeeValue = await tdee.textContent();
-    
-    // TDEE should be calculated (not 0)
-    expect(parseInt(tdeeValue)).toBeGreaterThan(0);
+  test('male toggle disables hips and shows 0', async ({ page }) => {
+    await page.locator('label.switch').first().click();
+    await page.waitForTimeout(200);
+    await page.locator('label.switch').first().click();
+    await page.waitForTimeout(200);
+    await expect(page.locator('#hipsSlider')).toBeDisabled();
+    await expect(page.locator('#hipsValue')).toContainText('0');
+  });
+
+  test('unit toggle updates labels to metric', async ({ page }) => {
+    await page.locator('label.switch').nth(1).click();
+    await page.waitForTimeout(200);
+    await expect(page.locator('#heightUnitLabel')).toHaveText('cm');
+    await expect(page.locator('#weightUnitLabel')).toHaveText('kg');
+    await expect(page.locator('#heightInputUnitLabel')).toHaveText('cm');
+  });
+
+  test('height input shows cm in metric mode', async ({ page }) => {
+    await page.locator('label.switch').nth(1).click();
+    await page.waitForTimeout(200);
+    const inputVal = await page.locator('#heightInput').inputValue();
+    expect(parseFloat(inputVal)).toBeGreaterThan(170);
+    expect(parseFloat(inputVal)).toBeLessThan(180);
+  });
+
+  test('metric height input updates calculations', async ({ page }) => {
+    await page.locator('label.switch').nth(1).click();
+    await page.waitForTimeout(200);
+    await page.locator('#heightInput').fill('180');
+    await page.locator('#heightInput').blur();
+    await page.waitForTimeout(150);
+    const bmi = parseFloat(await page.locator('#bmi').textContent());
+    expect(bmi).toBeGreaterThan(0);
+  });
+
+  test('theme toggle switches dark class', async ({ page }) => {
+    const wasDark = await page.locator('body').evaluate((el) => el.classList.contains('dark'));
+    await page.locator('#themeToggle').click();
+    await page.waitForTimeout(150);
+    const isDark = await page.locator('body').evaluate((el) => el.classList.contains('dark'));
+    expect(isDark).not.toBe(wasDark);
+  });
+
+  test('activity level change updates TDEE', async ({ page }) => {
+    const tdeeSedentary = await getTdeeForActivity(page, '1.2');
+    const tdeeActive = await getTdeeForActivity(page, '1.9');
+    expect(tdeeActive).toBeGreaterThan(tdeeSedentary);
+  });
+
+  test('FFMI scale switches with gender', async ({ page }) => {
+    await expect(page.locator('#ffmiScaleMale')).toHaveAttribute('aria-hidden', 'false');
+    await expect(page.locator('#ffmiScaleFemale')).toHaveAttribute('aria-hidden', 'true');
+    await page.locator('label.switch').first().click();
+    await page.waitForTimeout(200);
+    await expect(page.locator('#ffmiScaleMale')).toHaveAttribute('aria-hidden', 'true');
+    await expect(page.locator('#ffmiScaleFemale')).toHaveAttribute('aria-hidden', 'false');
+  });
+});
+
+test.describe('FFMI Calculator – calculations', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/index.html');
+    await page.waitForFunction(() => {
+      const bmi = document.getElementById('bmi')?.textContent;
+      return bmi && parseFloat(bmi) > 0;
+    });
+  });
+
+  test('BMI updates when weight changes', async ({ page }) => {
+    await page.locator('#weightSlider').fill('250');
+    await page.waitForTimeout(100);
+    const bmi = parseFloat(await page.locator('#bmi').textContent());
+    expect(bmi).toBeGreaterThan(25);
+  });
+
+  test('BMI category badge is applied', async ({ page }) => {
+    await page.locator('#weightSlider').fill('250');
+    await page.waitForTimeout(100);
+    const category = await page.locator('#bmiCategory').textContent();
+    expect(['Overweight', 'Obese']).toContain(category);
+    await expect(page.locator('#bmiCategory')).toHaveClass(/badge/);
+  });
+
+  test('body fat and FFMI are positive', async ({ page }) => {
+    const bodyFat = await page.locator('#bodyFatCalc').textContent();
+    expect(bodyFat).toMatch(/\d+%/);
+    expect(parseFloat(await page.locator('#ffmi').textContent())).toBeGreaterThan(0);
+    expect(parseFloat(await page.locator('#adjustedFfmi').textContent())).toBeGreaterThan(0);
+    expect(parseFloat(await page.locator('#fatFreeMass').textContent())).toBeGreaterThan(0);
+  });
+
+  test('TDEE and BMR are calculated', async ({ page }) => {
+    const bmr = parseInt(await page.locator('#bmr').textContent(), 10);
+    const tdee = parseInt(await page.locator('#tdee').textContent(), 10);
+    expect(bmr).toBeGreaterThan(1000);
+    expect(tdee).toBeGreaterThan(bmr);
   });
 
   test('weight loss mode when current weight > goal weight', async ({ page }) => {
-    await page.waitForTimeout(300);
-    // Set current weight to 200 lbs
     await page.locator('#weightSlider').fill('200');
     await page.waitForTimeout(100);
-    // Set goal weight below current (e.g. 180 lbs)
     await page.locator('#goalWeightInput').fill('180');
     await page.locator('#goalWeightInput').blur();
     await page.waitForTimeout(200);
@@ -99,26 +188,21 @@ test.describe('FFMI Calculator Tests', () => {
     await expect(page.locator('#weightChangeLabel1')).toHaveText('Weight Loss');
     await expect(page.locator('#weightChangeLabel2')).toHaveText('Weight Loss');
 
-    const tdee = parseInt(await page.locator('#tdee').textContent());
-    const cal1 = parseInt(await page.locator('#weightLoss1lb').textContent());
-    const cal2 = parseInt(await page.locator('#weightLoss2lb').textContent());
+    const tdee = parseInt(await page.locator('#tdee').textContent(), 10);
+    const cal1 = parseInt(await page.locator('#weightLoss1lb').textContent(), 10);
+    const cal2 = parseInt(await page.locator('#weightLoss2lb').textContent(), 10);
     expect(cal1).toBe(tdee - 500);
     expect(cal2).toBe(tdee - 1000);
 
     await expect(page.locator('#weeksToGoal1lb')).toContainText('weeks to goal');
     await expect(page.locator('#weeksToGoal2lb')).toContainText('weeks to goal');
-    const weeks1 = await page.locator('#weeksToGoal1lb').textContent();
-    const weeks2 = await page.locator('#weeksToGoal2lb').textContent();
-    expect(weeks1).toMatch(/~20 weeks/); // 20 lbs at 1 lb/week
-    expect(weeks2).toMatch(/~10 weeks/);  // 20 lbs at 2 lb/week
+    expect(await page.locator('#weeksToGoal1lb').textContent()).toMatch(/~20 weeks/);
+    expect(await page.locator('#weeksToGoal2lb').textContent()).toMatch(/~10 weeks/);
   });
 
   test('weight gain mode when current weight < goal weight', async ({ page }) => {
-    await page.waitForTimeout(300);
-    // Set current weight to 160 lbs
     await page.locator('#weightSlider').fill('160');
     await page.waitForTimeout(100);
-    // Set goal weight above current (e.g. 180 lbs)
     await page.locator('#goalWeightInput').fill('180');
     await page.locator('#goalWeightInput').blur();
     await page.waitForTimeout(200);
@@ -126,40 +210,66 @@ test.describe('FFMI Calculator Tests', () => {
     await expect(page.locator('#weightChangeLabel1')).toHaveText('Weight Gain');
     await expect(page.locator('#weightChangeLabel2')).toHaveText('Weight Gain');
 
-    const tdee = parseInt(await page.locator('#tdee').textContent());
-    const cal1 = parseInt(await page.locator('#weightLoss1lb').textContent());
-    const cal2 = parseInt(await page.locator('#weightLoss2lb').textContent());
+    const tdee = parseInt(await page.locator('#tdee').textContent(), 10);
+    const cal1 = parseInt(await page.locator('#weightLoss1lb').textContent(), 10);
+    const cal2 = parseInt(await page.locator('#weightLoss2lb').textContent(), 10);
     expect(cal1).toBe(tdee + 500);
     expect(cal2).toBe(tdee + 1000);
 
-    await expect(page.locator('#weeksToGoal1lb')).toContainText('weeks to goal');
-    await expect(page.locator('#weeksToGoal2lb')).toContainText('weeks to goal');
-    const weeks1 = await page.locator('#weeksToGoal1lb').textContent();
-    const weeks2 = await page.locator('#weeksToGoal2lb').textContent();
-    expect(weeks1).toMatch(/~20 weeks/); // 20 lbs at 1 lb/week
-    expect(weeks2).toMatch(/~10 weeks/);  // 20 lbs at 2 lb/week
+    expect(await page.locator('#weeksToGoal1lb').textContent()).toMatch(/~20 weeks/);
+    expect(await page.locator('#weeksToGoal2lb').textContent()).toMatch(/~10 weeks/);
   });
 
   test('no goal weight shows weight loss and no weeks to goal', async ({ page }) => {
-    await page.waitForTimeout(300);
     await page.locator('#weightSlider').fill('180');
     await page.waitForTimeout(100);
-    // Clear goal weight if any
     await page.locator('#goalWeightInput').fill('');
     await page.locator('#goalWeightInput').blur();
     await page.waitForTimeout(200);
 
     await expect(page.locator('#weightChangeLabel1')).toHaveText('Weight Loss');
-    await expect(page.locator('#weightChangeLabel2')).toHaveText('Weight Loss');
-
-    const tdee = parseInt(await page.locator('#tdee').textContent());
-    const cal1 = parseInt(await page.locator('#weightLoss1lb').textContent());
-    const cal2 = parseInt(await page.locator('#weightLoss2lb').textContent());
-    expect(cal1).toBe(tdee - 500);
-    expect(cal2).toBe(tdee - 1000);
-
+    const tdee = parseInt(await page.locator('#tdee').textContent(), 10);
+    expect(parseInt(await page.locator('#weightLoss1lb').textContent(), 10)).toBe(tdee - 500);
+    expect(parseInt(await page.locator('#weightLoss2lb').textContent(), 10)).toBe(tdee - 1000);
     await expect(page.locator('#weeksToGoal1lb')).toHaveText('');
     await expect(page.locator('#weeksToGoal2lb')).toHaveText('');
   });
+
+  test('fractional height changes BMI vs whole inches', async ({ page }) => {
+    await page.locator('#heightInput').fill('70');
+    await page.locator('#heightInput').blur();
+    await page.waitForTimeout(100);
+    const bmi70 = parseFloat(await page.locator('#bmi').textContent());
+
+    await page.locator('#heightInput').fill('70.5');
+    await page.locator('#heightInput').blur();
+    await page.waitForTimeout(100);
+    const bmi705 = parseFloat(await page.locator('#bmi').textContent());
+
+    expect(bmi705).toBeLessThan(bmi70);
+    expect(bmi70 - bmi705).toBeGreaterThan(0.05);
+  });
+
+  test('neck and waist sliders update displayed values', async ({ page }) => {
+    await page.locator('#neckSlider').fill('16');
+    await page.locator('#waistSlider').fill('36');
+    await page.waitForTimeout(100);
+    await expect(page.locator('#neckValue')).toContainText('16');
+    await expect(page.locator('#waistValue')).toContainText('36');
+  });
+
+  test('tooltips are populated from data attributes', async ({ page }) => {
+    const text = await page.locator('.tooltip-trigger').first().getAttribute('data-tooltip');
+    expect(text.length).toBeGreaterThan(10);
+  });
+
+  test('history panel shows Today entry', async ({ page }) => {
+    await expect(page.locator('#historyList')).toContainText('Today');
+  });
 });
 
+async function getTdeeForActivity(page, value) {
+  await page.locator('#activityLevel').selectOption(value);
+  await page.waitForTimeout(150);
+  return parseInt(await page.locator('#tdee').textContent(), 10);
+}
