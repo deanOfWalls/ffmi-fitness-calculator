@@ -89,11 +89,38 @@ test.describe('FFMI Calculator – UI', () => {
     await expect(page.locator('#hipsValue')).toContainText('0');
   });
 
+  test('weight manual input syncs to slider', async ({ page }) => {
+    await page.locator('#weightInput').fill('200');
+    await page.locator('#weightInput').blur();
+    await page.waitForTimeout(100);
+    await expect(page.locator('#weightSlider')).toHaveValue('200');
+    await expect(page.locator('#weightValue')).toContainText('200');
+  });
+
+  test('neck and waist manual inputs sync to sliders', async ({ page }) => {
+    await page.locator('#neckInput').fill('16');
+    await page.locator('#neckInput').blur();
+    await page.locator('#waistInput').fill('36');
+    await page.locator('#waistInput').blur();
+    await page.waitForTimeout(100);
+    await expect(page.locator('#neckSlider')).toHaveValue('16');
+    await expect(page.locator('#waistSlider')).toHaveValue('36');
+  });
+
+  test('female hips manual input syncs to slider', async ({ page }) => {
+    await page.locator('label.switch').first().click();
+    await page.waitForTimeout(200);
+    await page.locator('#hipsInput').fill('42');
+    await page.locator('#hipsInput').blur();
+    await page.waitForTimeout(100);
+    await expect(page.locator('#hipsSlider')).toHaveValue('42');
+  });
+
   test('unit toggle updates labels to metric', async ({ page }) => {
     await page.locator('label.switch').nth(1).click();
     await page.waitForTimeout(200);
-    await expect(page.locator('#heightUnitLabel')).toHaveText('cm');
-    await expect(page.locator('#weightUnitLabel')).toHaveText('kg');
+    await expect(page.locator('#heightUnitLabel')).toHaveText('(cm)');
+    await expect(page.locator('#weightInputUnitLabel')).toHaveText('kg');
     await expect(page.locator('#heightInputUnitLabel')).toHaveText('cm');
   });
 

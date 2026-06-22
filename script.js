@@ -7,37 +7,172 @@ import {
     parseHeightInput,
     getHeightInputBounds,
 } from './lib/height-utils.mjs';
+import { getWeightInputConfig, getLengthInputConfig } from './lib/measurement-utils.mjs';
 
 document.addEventListener('DOMContentLoaded', function () {
-    const genderToggle = document.getElementById('genderToggle'); // Male/Female toggle
-    const unitToggle = document.getElementById('unitToggle'); // Standard/Metric toggle
+    const genderToggle = document.getElementById('genderToggle');
+    const unitToggle = document.getElementById('unitToggle');
     const heightSlider = document.getElementById('heightSlider');
     const heightInput = document.getElementById('heightInput');
     const heightInputUnitLabel = document.getElementById('heightInputUnitLabel');
     const weightSlider = document.getElementById('weightSlider');
+    const weightInput = document.getElementById('weightInput');
+    const weightInputUnitLabel = document.getElementById('weightInputUnitLabel');
     const neckSlider = document.getElementById('neckSlider');
+    const neckInput = document.getElementById('neckInput');
+    const neckInputUnitLabel = document.getElementById('neckInputUnitLabel');
     const waistSlider = document.getElementById('waistSlider');
+    const waistInput = document.getElementById('waistInput');
+    const waistInputUnitLabel = document.getElementById('waistInputUnitLabel');
     const hipsSlider = document.getElementById('hipsSlider');
+    const hipsInput = document.getElementById('hipsInput');
+    const hipsInputUnitLabel = document.getElementById('hipsInputUnitLabel');
     const hipsGroup = document.getElementById('hipsGroup');
-    const ffmiIndicator = document.getElementById('ffmiIndicatorMale'); // Default male
     const bodyElement = document.body;
 
-    // Unit Labels
     const heightUnitLabel = document.getElementById('heightUnitLabel');
-    const weightUnitLabel = document.getElementById('weightUnitLabel');
-    const neckUnitLabel = document.getElementById('neckUnitLabel');
-    const waistUnitLabel = document.getElementById('waistUnitLabel');
-    const hipsUnitLabel = document.getElementById('hipsUnitLabel');
-
-    // Activity Level Selector - must be defined before updateUI() is called
     const activityLevel = document.getElementById('activityLevel');
-    
-    // Goal Weight Input
     const goalWeightInput = document.getElementById('goalWeightInput');
     const goalWeightUnitLabel = document.getElementById('goalWeightUnitLabel');
     const darkModeToggle = document.getElementById('darkModeToggle');
 
-    // Load saved values from localStorage or use defaults
+    const HISTORY_KEY = 'ffmi_daily_history';
+    const MAX_HISTORY_DAYS = 365;
+    let todayLiveState = null;
+    const fieldBindings = [];
+
+    function bindSliderInput({ slider, input, unitLabel, getConfig, isHeight = false }) {
+        let syncing = false;
+
+        const binding = {
+            updateBounds() {
+                if (isHeight) {
+                    const bounds = getHeightInputBounds(unitToggle.checked);
+                    input.min = String(bounds.min);
+                    input.max = String(bounds.max);
+                    input.step = String(bounds.step);
+                    unitLabel.textContent = unitToggle.checked ? 'cm' : 'in';
+                } else {
+                    const cfg = getConfig();
+                    input.min = String(cfg.min);
+                    input.max = String(cfg.max);
+                    input.step = String(cfg.step);
+                    unitLabel.textContent = cfg.unit;
+                }
+                input.disabled = slider.disabled;
+            },
+            syncFromSlider() {
+                if (syncing) return;
+                syncing = true;
+                if (isHeight) {
+                    input.value = heightInchesToInputValue(slider.value, unitToggle.checked);
+                } else {
+                    const cfg = getConfig();
+                    input.value = cfg.toInput(parseFloat(slider.value));
+                }
+                syncing = false;
+            },
+            applyFromInput() {
+                if (syncing || input.disabled) return;
+                let sliderVal;
+                if (isHeight) {
+                    sliderVal = parseHeightInput(input.value, unitToggle.checked);
+                } else {
+                    sliderVal = getConfig().toSlider(input.value);
+                }
+                if (sliderVal == null) return;
+                syncing = true;
+                slider.value = String(isHeight ? sliderVal : sliderVal);
+                syncing = false;
+                saveValues();
+                updateUI();
+            },
+        };
+
+        slider.addEventListener('input', function () {
+            binding.syncFromSlider();
+            saveValues();
+            updateUI();
+        });
+        input.addEventListener('input', () => binding.applyFromInput());
+        input.addEventListener('change', () => binding.applyFromInput());
+        fieldBindings.push(binding);
+        return binding;
+    }
+
+    const heightBinding = bindSliderInput({
+        slider: heightSlider,
+        input: heightInput,
+        unitLabel: heightInputUnitLabel,
+        isHeight: true,
+    });
+
+    bindSliderInput({
+        slider: weightSlider,
+        input: weightInput,
+        unitLabel: weightInputUnitLabel,
+        getConfig: () => getWeightInputConfig(
+            unitToggle.checked,
+            parseFloat(weightSlider.min),
+            parseFloat(weightSlider.max),
+            parseFloat(weightSlider.step)
+        ),
+    });
+
+    bindSliderInput({
+        slider: neckSlider,
+        input: neckInput,
+        unitLabel: neckInputUnitLabel,
+        getConfig: () => getLengthInputConfig(
+            unitToggle.checked,
+            parseFloat(neckSlider.min),
+            parseFloat(neckSlider.max),
+            parseFloat(neckSlider.step)
+        ),
+    });
+
+    bindSliderInput({
+        slider: waistSlider,
+        input: waistInput,
+        unitLabel: waistInputUnitLabel,
+        getConfig: () => getLengthInputConfig(
+            unitToggle.checked,
+            parseFloat(waistSlider.min),
+            parseFloat(waistSlider.max),
+            parseFloat(waistSlider.step)
+        ),
+    });
+
+    const hipsBinding = bindSliderInput({
+        slider: hipsSlider,
+        input: hipsInput,
+        unitLabel: hipsInputUnitLabel,
+        getConfig: () => getLengthInputConfig(
+            unitToggle.checked,
+            parseFloat(hipsSlider.min),
+            parseFloat(hipsSlider.max),
+            parseFloat(hipsSlider.step)
+        ),
+    });
+
+    function syncAllInputsFromSliders() {
+        fieldBindings.forEach((b) => b.syncFromSlider());
+    }
+
+    function updateAllInputBounds() {
+        fieldBindings.forEach((b) => b.updateBounds());
+    }
+
+    function setHipsEnabled(enabled) {
+        hipsSlider.disabled = !enabled;
+        hipsInput.disabled = !enabled;
+        hipsGroup.classList.toggle('grayed-out', !enabled);
+        document.querySelectorAll('[data-slider="hipsSlider"]').forEach((btn) => {
+            btn.disabled = !enabled;
+        });
+        hipsBinding.updateBounds();
+    }
+
     function loadSavedValues() {
         const saved = {
             gender: localStorage.getItem('ffmi_gender'),
@@ -49,40 +184,23 @@ document.addEventListener('DOMContentLoaded', function () {
             waist: localStorage.getItem('ffmi_waist'),
             hips: localStorage.getItem('ffmi_hips'),
             activity: localStorage.getItem('ffmi_activity'),
-            goalWeight: localStorage.getItem('ffmi_goalWeight')
+            goalWeight: localStorage.getItem('ffmi_goalWeight'),
         };
 
-        // Load gender (default: false = Male)
         genderToggle.checked = saved.gender === 'true';
-
-        // Load unit system (default: false = Standard)
         unitToggle.checked = saved.unit === 'true';
-
-        // Load dark mode (default: true = Dark when no preference saved)
         darkModeToggle.checked = saved.darkMode !== 'false';
         bodyElement.classList.toggle('dark', darkModeToggle.checked);
 
-        // Load slider values with defaults from HTML
-        heightSlider.value = saved.height || heightSlider.value;
-        heightSlider.value = String(clampHeightInches(heightSlider.value));
+        heightSlider.value = String(clampHeightInches(saved.height || heightSlider.value));
         weightSlider.value = saved.weight || weightSlider.value;
         neckSlider.value = saved.neck || neckSlider.value;
         waistSlider.value = saved.waist || waistSlider.value;
         hipsSlider.value = saved.hips || hipsSlider.value;
 
-        // Load activity level
-        if (saved.activity) {
-            activityLevel.value = saved.activity;
-        }
-        
-        // Load goal weight
-        if (saved.goalWeight) {
-            goalWeightInput.value = saved.goalWeight;
-        }
+        if (saved.activity) activityLevel.value = saved.activity;
+        if (saved.goalWeight) goalWeightInput.value = saved.goalWeight;
     }
-
-    const HISTORY_KEY = 'ffmi_daily_history';
-    const MAX_HISTORY_DAYS = 365;
 
     function getCurrentFormState() {
         return {
@@ -94,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
             waist: waistSlider.value,
             hips: hipsSlider.value,
             activity: activityLevel.value,
-            goalWeight: goalWeightInput.value
+            goalWeight: goalWeightInput.value,
         };
     }
 
@@ -102,28 +220,32 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!state) return;
         genderToggle.checked = state.gender === true || state.gender === 'true';
         unitToggle.checked = state.unit === true || state.unit === 'true';
-        heightSlider.value = state.height || heightSlider.value;
-        heightSlider.value = String(clampHeightInches(heightSlider.value));
-        syncHeightInputFromSlider();
+        heightSlider.value = String(clampHeightInches(state.height || heightSlider.value));
         weightSlider.value = state.weight || weightSlider.value;
         neckSlider.value = state.neck || neckSlider.value;
         waistSlider.value = state.waist || waistSlider.value;
         hipsSlider.value = state.hips || hipsSlider.value;
         if (state.activity != null) activityLevel.value = state.activity;
         goalWeightInput.value = state.goalWeight != null ? state.goalWeight : '';
-        hipsSlider.disabled = !genderToggle.checked;
-        hipsGroup.classList.toggle('grayed-out', !genderToggle.checked);
-        document.querySelectorAll('[data-slider="hipsSlider"]').forEach(btn => btn.disabled = !genderToggle.checked);
-        if (unitToggle.checked) {
-            goalWeightInput.min = '36';
-            goalWeightInput.max = '182';
-        } else {
-            goalWeightInput.min = '80';
-            goalWeightInput.max = '400';
-        }
+        setHipsEnabled(genderToggle.checked);
+        updateGoalWeightBounds();
+        updateAllInputBounds();
+        syncAllInputsFromSliders();
         updateFFMIScale(genderToggle.checked);
         updateColors(genderToggle.checked, darkModeToggle ? darkModeToggle.checked : false);
         updateUI();
+    }
+
+    function updateGoalWeightBounds() {
+        if (unitToggle.checked) {
+            goalWeightInput.min = '36';
+            goalWeightInput.max = '182';
+            goalWeightUnitLabel.textContent = 'kg';
+        } else {
+            goalWeightInput.min = '80';
+            goalWeightInput.max = '400';
+            goalWeightUnitLabel.textContent = 'lbs';
+        }
     }
 
     function getTodayKey() {
@@ -146,12 +268,11 @@ document.addEventListener('DOMContentLoaded', function () {
         history[key] = getCurrentFormState();
         const keys = Object.keys(history).sort();
         if (keys.length > MAX_HISTORY_DAYS) {
-            keys.slice(0, keys.length - MAX_HISTORY_DAYS).forEach(k => delete history[k]);
+            keys.slice(0, keys.length - MAX_HISTORY_DAYS).forEach((k) => delete history[k]);
         }
         localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
     }
 
-    // Save values to localStorage
     function saveValues() {
         localStorage.setItem('ffmi_gender', genderToggle.checked);
         localStorage.setItem('ffmi_unit', unitToggle.checked);
@@ -170,36 +291,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Today's live state (restored when switching back from a past day)
-    let todayLiveState = null;
-    let syncingHeight = false;
-
-    function updateHeightInputBounds() {
-        const bounds = getHeightInputBounds(unitToggle.checked);
-        heightInput.min = String(bounds.min);
-        heightInput.max = String(bounds.max);
-        heightInput.step = String(bounds.step);
-        heightInputUnitLabel.textContent = unitToggle.checked ? 'cm' : 'inches';
-    }
-
-    function syncHeightInputFromSlider() {
-        if (syncingHeight) return;
-        syncingHeight = true;
-        heightInput.value = heightInchesToInputValue(heightSlider.value, unitToggle.checked);
-        syncingHeight = false;
-    }
-
-    function applyHeightFromManualInput() {
-        if (syncingHeight) return;
-        const inches = parseHeightInput(heightInput.value, unitToggle.checked);
-        if (inches == null) return;
-        syncingHeight = true;
-        heightSlider.value = String(inches);
-        syncingHeight = false;
-        saveValues();
-        updateUI();
-    }
-
     function formatHistoryDate(isoKey) {
         const [y, m, d] = isoKey.split('-').map(Number);
         const date = new Date(y, m - 1, d);
@@ -214,21 +305,21 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!listEl) return;
         const history = getDailyHistory();
         const todayKey = getTodayKey();
-        const keys = Object.keys(history).filter(k => history[k] != null).sort().reverse();
+        const keys = Object.keys(history).filter((k) => history[k] != null).sort().reverse();
         const selected = listEl.querySelector('input[name="historyDay"]:checked');
         const selectedValue = selected ? selected.value : 'today';
 
         let html = '';
-        html += '<label class="history-item' + (selectedValue === 'today' ? ' is-selected' : '') + '"><input type="radio" name="historyDay" value="today"' + (selectedValue === 'today' ? ' checked' : '') + '> <span class="history-item__label">Today</span></label>';
-        keys.forEach(key => {
+        html += '<label class="history-item' + (selectedValue === 'today' ? ' is-selected' : '') + '"><input type="radio" class="history-item__radio" name="historyDay" value="today"' + (selectedValue === 'today' ? ' checked' : '') + '><span class="history-item__label">Today</span></label>';
+        keys.forEach((key) => {
             if (key === todayKey) return;
-            html += '<label class="history-item' + (selectedValue === key ? ' is-selected' : '') + '"><input type="radio" name="historyDay" value="' + key + '"' + (selectedValue === key ? ' checked' : '') + '> <span class="history-item__label">' + formatHistoryDate(key) + '</span></label>';
+            html += '<label class="history-item' + (selectedValue === key ? ' is-selected' : '') + '"><input type="radio" class="history-item__radio" name="historyDay" value="' + key + '"' + (selectedValue === key ? ' checked' : '') + '><span class="history-item__label">' + formatHistoryDate(key) + '</span></label>';
         });
         listEl.innerHTML = html;
 
-        listEl.querySelectorAll('input[name="historyDay"]').forEach(radio => {
+        listEl.querySelectorAll('input[name="historyDay"]').forEach((radio) => {
             radio.addEventListener('change', function () {
-                listEl.querySelectorAll('.history-item').forEach(el => el.classList.remove('is-selected'));
+                listEl.querySelectorAll('.history-item').forEach((el) => el.classList.remove('is-selected'));
                 this.closest('.history-item').classList.add('is-selected');
                 const value = this.value;
                 if (value === 'today') {
@@ -242,33 +333,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Load saved values
     loadSavedValues();
-    updateHeightInputBounds();
-    syncHeightInputFromSlider();
-    
-    // Set initial goal weight input min/max based on unit system
-    if (unitToggle.checked) {
-        goalWeightInput.min = '36';
-        goalWeightInput.max = '182';
-    } else {
-        goalWeightInput.min = '80';
-        goalWeightInput.max = '400';
-    }
+    updateGoalWeightBounds();
+    updateAllInputBounds();
 
-    // Set default hip value to 0 when male is selected
-    if (!genderToggle.checked) {
-        hipsSlider.value = 0;
-    }
-    document.getElementById('hipsValue').textContent = '0 in'; // Will be updated by updateUI()
-
-    // Gray out hip slider by default since male is selected
-    hipsSlider.disabled = !genderToggle.checked;
-    hipsGroup.classList.toggle('grayed-out', !genderToggle.checked);
-    
-    // Disable hip slider buttons initially if male
-    const hipsButtons = document.querySelectorAll('[data-slider="hipsSlider"]');
-    hipsButtons.forEach(btn => btn.disabled = !genderToggle.checked);
+    if (!genderToggle.checked) hipsSlider.value = 0;
+    setHipsEnabled(genderToggle.checked);
+    syncAllInputsFromSliders();
 
     updateUI();
     updateColors(genderToggle.checked, darkModeToggle ? darkModeToggle.checked : false);
@@ -277,34 +348,20 @@ document.addEventListener('DOMContentLoaded', function () {
     saveDailySnapshot();
     renderHistoryList();
 
-    // Gender Toggle (Male/Female)
     genderToggle.addEventListener('change', function () {
-        hipsSlider.disabled = !genderToggle.checked; // Enable only when female is selected
-        hipsGroup.classList.toggle('grayed-out', !genderToggle.checked); // Gray out when male
-        
-        // Disable/enable hip slider buttons
-        const hipsButtons = document.querySelectorAll('[data-slider="hipsSlider"]');
-        hipsButtons.forEach(btn => btn.disabled = !genderToggle.checked);
-
-        // Set default hip value to 0 if male is selected
+        setHipsEnabled(genderToggle.checked);
         if (!genderToggle.checked) {
             hipsSlider.value = 0;
-            const isMetric = unitToggle.checked;
-            document.getElementById('hipsValue').textContent = isMetric ? '0 cm' : '0 in';
-        } else {
-            // When switching to female, set a reasonable default if hips is 0
-            if (parseFloat(hipsSlider.value) === 0) {
-                hipsSlider.value = 40; // Default hip measurement
-            }
+        } else if (parseFloat(hipsSlider.value) === 0) {
+            hipsSlider.value = 40;
         }
-
-        saveValues(); // Save to localStorage
-        updateFFMIScale(genderToggle.checked); // Switch FFMI scale based on gender
+        hipsBinding.syncFromSlider();
+        saveValues();
+        updateFFMIScale(genderToggle.checked);
         updateColors(genderToggle.checked, darkModeToggle ? darkModeToggle.checked : false);
         updateUI();
     });
 
-    // Dark mode: theme button (top-right) toggles hidden checkbox; icon reflects current mode via CSS
     const themeToggleBtn = document.getElementById('themeToggle');
     if (darkModeToggle) {
         darkModeToggle.addEventListener('change', function () {
@@ -320,190 +377,105 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Unit System Toggle (Standard/Metric)
     unitToggle.addEventListener('change', function () {
-        // Convert goal weight value when switching units
         const currentGoalWeight = goalWeightInput.value.trim();
         if (currentGoalWeight) {
             const goalWeight = parseFloat(currentGoalWeight);
             if (!isNaN(goalWeight) && goalWeight > 0) {
-                if (unitToggle.checked) {
-                    // Converting from lbs to kg
-                    goalWeightInput.value = (goalWeight / 2.2).toFixed(1);
-                } else {
-                    // Converting from kg to lbs
-                    goalWeightInput.value = (goalWeight * 2.2).toFixed(1);
-                }
+                goalWeightInput.value = unitToggle.checked
+                    ? (goalWeight / 2.2).toFixed(1)
+                    : (goalWeight * 2.2).toFixed(1);
             }
         }
-        
-        // Update goal weight input min/max based on unit system
-        if (unitToggle.checked) {
-            // Metric: convert 80-400 lbs to ~36-182 kg
-            goalWeightInput.min = '36';
-            goalWeightInput.max = '182';
-        } else {
-            // Standard: 80-400 lbs
-            goalWeightInput.min = '80';
-            goalWeightInput.max = '400';
-        }
-        
-        saveValues(); // Save to localStorage
-        updateHeightInputBounds();
-        syncHeightInputFromSlider();
-        updateUI(); // Update the display without moving sliders
-    });
-
-    // Activity Level Selector - already defined above
-    activityLevel.addEventListener('change', function() {
-        saveValues(); // Save to localStorage
-        updateUI();
-    });
-
-    // Update input listeners - save values on change
-    heightSlider.addEventListener('input', function() {
-        syncHeightInputFromSlider();
-        saveValues();
-        updateUI();
-    });
-    heightInput.addEventListener('input', function() {
-        applyHeightFromManualInput();
-    });
-    heightInput.addEventListener('change', function() {
-        applyHeightFromManualInput();
-    });
-    weightSlider.addEventListener('input', function() {
-        saveValues();
-        updateUI();
-    });
-    neckSlider.addEventListener('input', function() {
-        saveValues();
-        updateUI();
-    });
-    waistSlider.addEventListener('input', function() {
-        saveValues();
-        updateUI();
-    });
-    hipsSlider.addEventListener('input', function() {
-        saveValues();
-        updateUI();
-    });
-    
-    // Goal weight input listener
-    goalWeightInput.addEventListener('input', function() {
+        updateGoalWeightBounds();
+        updateAllInputBounds();
+        syncAllInputsFromSliders();
         saveValues();
         updateUI();
     });
 
-    // Add arrow button functionality for precise slider control
+    activityLevel.addEventListener('change', function () {
+        saveValues();
+        updateUI();
+    });
+
+    goalWeightInput.addEventListener('input', function () {
+        saveValues();
+        updateUI();
+    });
+
     function adjustSlider(sliderId, direction) {
         const slider = document.getElementById(sliderId);
         if (!slider || slider.disabled) return;
-        
+
         const currentValue = parseFloat(slider.value);
         const step = parseFloat(slider.step) || 1;
         const min = parseFloat(slider.min);
         const max = parseFloat(slider.max);
-        
-        let newValue;
-        if (direction === 'increase') {
-            newValue = Math.min(max, currentValue + step);
-        } else {
-            newValue = Math.max(min, currentValue - step);
-        }
-        
+
+        const newValue = direction === 'increase'
+            ? Math.min(max, currentValue + step)
+            : Math.max(min, currentValue - step);
+
         slider.value = newValue;
-        saveValues();
-        updateUI();
+        slider.dispatchEvent(new Event('input'));
     }
 
-    // Add event listeners to all slider buttons
-    document.querySelectorAll('.slider-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const sliderId = this.getAttribute('data-slider');
-            const direction = this.getAttribute('data-direction');
-            adjustSlider(sliderId, direction);
+    document.querySelectorAll('.slider-btn').forEach((button) => {
+        button.addEventListener('click', function () {
+            adjustSlider(this.getAttribute('data-slider'), this.getAttribute('data-direction'));
         });
     });
 
-    // Update the UI calculations and input values
     function updateUI() {
         const isMetric = unitToggle.checked;
         const isFemale = genderToggle.checked;
 
-        let heightInches = parseFloat(heightSlider.value);
-        let weightLbs = parseFloat(weightSlider.value);
-        let neckInches = parseFloat(neckSlider.value);
-        let waistInches = parseFloat(waistSlider.value);
-        let hipsInches = isFemale ? parseFloat(hipsSlider.value) : 0;
+        const heightInches = parseFloat(heightSlider.value);
+        const weightLbs = parseFloat(weightSlider.value);
+        const neckInches = parseFloat(neckSlider.value);
+        const waistInches = parseFloat(waistSlider.value);
+        const hipsInches = isFemale ? parseFloat(hipsSlider.value) : 0;
 
-        // Toggle Unit Labels based on Metric/Standard
-        heightUnitLabel.textContent = isMetric ? 'cm' : 'ft/in';
-        weightUnitLabel.textContent = isMetric ? 'kg' : 'lbs';
-        neckUnitLabel.textContent = isMetric ? 'cm' : 'inches';
-        waistUnitLabel.textContent = isMetric ? 'cm' : 'inches';
-        hipsUnitLabel.textContent = isMetric ? 'cm' : 'inches';
-        goalWeightUnitLabel.textContent = isMetric ? 'kg' : 'lbs';
+        heightUnitLabel.textContent = isMetric ? '(cm)' : '(ft/in)';
+        heightBinding.syncFromSlider();
 
-        // Update height display with correct suffix (but don't change the slider position)
-        if (isMetric) {
-            document.getElementById('heightValue').textContent = formatHeightMetric(heightInches);
-        } else {
-            document.getElementById('heightValue').textContent = formatHeightStandard(heightInches);
-        }
-        if (!syncingHeight) {
-            syncHeightInputFromSlider();
-        }
+        document.getElementById('heightValue').textContent = isMetric
+            ? formatHeightMetric(heightInches)
+            : formatHeightStandard(heightInches);
 
-        // Update weight display with correct suffix (but don't change the slider position)
-        if (isMetric) {
-            const weightKg = (weightLbs / 2.2);
-            // Round to nearest 0.5 for display
-            const weightKgRounded = Math.round(weightKg * 2) / 2;
-            document.getElementById('weightValue').textContent = `${weightKgRounded.toFixed(1)} kg`;
-        } else {
-            // Round to nearest 0.5 for display
-            const weightLbsRounded = Math.round(weightLbs * 2) / 2;
-            document.getElementById('weightValue').textContent = `${weightLbsRounded.toFixed(1)} lbs`;
-        }
+        const weightKgRounded = Math.round((weightLbs / 2.2) * 2) / 2;
+        const weightLbsRounded = Math.round(weightLbs * 2) / 2;
+        document.getElementById('weightValue').textContent = isMetric
+            ? `${weightKgRounded.toFixed(1)} kg`
+            : `${weightLbsRounded.toFixed(1)} lbs`;
 
-        // Update neck and waist display with correct suffix (but don't change the slider position)
-        if (isMetric) {
-            const neckCm = (neckInches * 2.54).toFixed(1); // Convert inches to cm
-            const waistCm = (waistInches * 2.54).toFixed(1); // Convert inches to cm
-            document.getElementById('neckValue').textContent = `${neckCm} cm`;
-            document.getElementById('waistValue').textContent = `${waistCm} cm`;
-        } else {
-            document.getElementById('neckValue').textContent = `${neckSlider.value} in`;
-            document.getElementById('waistValue').textContent = `${waistSlider.value} in`;
-        }
+        document.getElementById('neckValue').textContent = isMetric
+            ? `${(neckInches * 2.54).toFixed(1)} cm`
+            : `${neckSlider.value} in`;
+        document.getElementById('waistValue').textContent = isMetric
+            ? `${(waistInches * 2.54).toFixed(1)} cm`
+            : `${waistSlider.value} in`;
 
-        // Update hips display if applicable
         if (isFemale) {
-            if (isMetric) {
-                const hipsCm = (hipsInches * 2.54).toFixed(1); // Convert inches to cm
-                document.getElementById('hipsValue').textContent = `${hipsCm} cm`;
-            } else {
-                document.getElementById('hipsValue').textContent = `${hipsSlider.value} in`;
-            }
+            document.getElementById('hipsValue').textContent = isMetric
+                ? `${(hipsInches * 2.54).toFixed(1)} cm`
+                : `${hipsSlider.value} in`;
         } else {
-            // Set hip value to 0 when male is selected, respecting unit system
             document.getElementById('hipsValue').textContent = isMetric ? '0 cm' : '0 in';
         }
 
-        // BMI, FFMI, and other calculations
         const activityMultiplier = parseFloat(activityLevel.value);
-        
-        // Get goal weight and convert to lbs if needed
+
         let goalWeightLbs = null;
         const goalWeightValue = goalWeightInput.value.trim();
         if (goalWeightValue) {
             const goalWeight = parseFloat(goalWeightValue);
             if (!isNaN(goalWeight) && goalWeight > 0) {
-                goalWeightLbs = isMetric ? (goalWeight * 2.2) : goalWeight;
+                goalWeightLbs = isMetric ? goalWeight * 2.2 : goalWeight;
             }
         }
-        
+
         calculateBodyMetrics(isMetric, heightInches, weightLbs, neckInches, waistInches, hipsInches, isFemale, activityMultiplier, goalWeightLbs);
     }
 
@@ -519,8 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
             goalWeightLbs,
         });
 
-        const bmiValue = metrics.bmiValue;
-        document.getElementById('bmi').textContent = bmiValue.toFixed(2);
+        document.getElementById('bmi').textContent = metrics.bmiValue.toFixed(2);
         const bmiCategoryElement = document.getElementById('bmiCategory');
         const category = metrics.bmiCategory;
         bmiCategoryElement.textContent = category;
@@ -534,20 +505,12 @@ document.addEventListener('DOMContentLoaded', function () {
             bmiCategoryElement.classList.add('badge--bad');
         }
 
-        const bodyFatPercentage = metrics.bodyFatPercentage;
-        const fatFreeMass = metrics.fatFreeMass;
-        const ffmi = metrics.ffmi;
-        const normalizedFfmi = metrics.normalizedFfmi;
-        const bmr = metrics.bmr;
-        const tdee = metrics.tdee;
-
-        const fatFreeMassDisplay = isMetric ? (fatFreeMass / 2.2) : fatFreeMass;
-        const fatFreeMassUnit = isMetric ? 'kg' : 'lbs';
+        const fatFreeMassDisplay = isMetric ? metrics.fatFreeMass / 2.2 : metrics.fatFreeMass;
         document.getElementById('fatFreeMass').textContent = fatFreeMassDisplay.toFixed(2);
-        document.getElementById('fatFreeMassUnit').textContent = fatFreeMassUnit;
-        document.getElementById('bodyFatCalc').textContent = `${bodyFatPercentage}%`;
-        document.getElementById('ffmi').textContent = ffmi.toFixed(2);
-        document.getElementById('adjustedFfmi').textContent = normalizedFfmi.toFixed(2);
+        document.getElementById('fatFreeMassUnit').textContent = isMetric ? 'kg' : 'lbs';
+        document.getElementById('bodyFatCalc').textContent = `${metrics.bodyFatPercentage}%`;
+        document.getElementById('ffmi').textContent = metrics.ffmi.toFixed(2);
+        document.getElementById('adjustedFfmi').textContent = metrics.normalizedFfmi.toFixed(2);
 
         const label1 = document.getElementById('weightChangeLabel1');
         const label2 = document.getElementById('weightChangeLabel2');
@@ -571,40 +534,36 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        document.getElementById('bmr').textContent = Math.round(bmr);
-        document.getElementById('tdee').textContent = Math.round(tdee);
+        document.getElementById('bmr').textContent = Math.round(metrics.bmr);
+        document.getElementById('tdee').textContent = Math.round(metrics.tdee);
         document.getElementById('weightLoss1lb').textContent = metrics.cal1;
         document.getElementById('weightLoss2lb').textContent = metrics.cal2;
 
-        updateFFMIIndicator(ffmi, isFemale, metrics.ffmiIndicatorPosition);
+        updateFFMIIndicator(isFemale, metrics.ffmiIndicatorPosition);
     }
 
-    function updateFFMIIndicator(ffmi, isFemale, indicatorPosition) {
+    function updateFFMIIndicator(isFemale, indicatorPosition) {
         const ffmiIndicator = isFemale
             ? document.getElementById('ffmiIndicatorFemale')
             : document.getElementById('ffmiIndicatorMale');
         ffmiIndicator.style.left = `${indicatorPosition}%`;
     }
 
-// Sync accent with gender; style.css uses body.female for --primary-color / --slider-color
-function updateColors(isFemale, isDark) {
-    document.body.classList.toggle('female', isFemale);
-    const accent = isFemale ? '#e891b0' : '#3FA2FF';
-    const accentSoft = isFemale ? 'rgba(232, 145, 176, 0.18)' : 'rgba(63, 162, 255, 0.18)';
-    document.documentElement.style.setProperty('--accent', accent);
-    document.documentElement.style.setProperty('--accent-soft', accentSoft);
-    document.documentElement.style.setProperty('--accent-hover', isFemale ? '#f0a0c0' : '#66B6FF');
-}
+    function updateColors(isFemale, isDark) {
+        document.body.classList.toggle('female', isFemale);
+        const accent = isFemale ? '#e891b0' : '#3FA2FF';
+        const accentSoft = isFemale ? 'rgba(232, 145, 176, 0.18)' : 'rgba(63, 162, 255, 0.18)';
+        document.documentElement.style.setProperty('--accent', accent);
+        document.documentElement.style.setProperty('--accent-soft', accentSoft);
+        document.documentElement.style.setProperty('--accent-hover', isFemale ? '#f0a0c0' : '#66B6FF');
+    }
 
-
-    // Toggle between FFMI scales based on gender
     function updateFFMIScale(isFemale) {
         document.getElementById('ffmiScaleMale').setAttribute('aria-hidden', isFemale ? 'true' : 'false');
         document.getElementById('ffmiScaleFemale').setAttribute('aria-hidden', isFemale ? 'false' : 'true');
     }
 
-    // Initialize tooltips
-    document.querySelectorAll('.tooltip-trigger').forEach(function(trigger) {
+    document.querySelectorAll('.tooltip-trigger').forEach(function (trigger) {
         const tooltipText = trigger.querySelector('.tooltip-text');
         if (tooltipText) {
             tooltipText.textContent = trigger.getAttribute('data-tooltip');

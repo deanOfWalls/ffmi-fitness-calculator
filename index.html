@@ -14,145 +14,220 @@
     <input type="checkbox" id="darkModeToggle" class="dark-mode-checkbox" aria-hidden="true" tabindex="-1" checked />
 
     <div class="container">
-        <div class="main-content">
-        <div class="inputs">
+        <header class="app-header">
             <h1>All-in-One Fitness Calculator</h1>
+            <p class="app-subtitle">Body composition, FFMI, and calorie targets</p>
+        </header>
 
-            <div class="input-group">
-                <span>Male</span>
-                <label class="switch">
-                    <input type="checkbox" id="genderToggle">
-                    <span class="slider round"></span>
-                </label>
-                <span>Female</span>
-            </div>
-
-            <div class="input-group">
-                <span>Standard</span>
-                <label class="switch">
-                    <input type="checkbox" id="unitToggle">
-                    <span class="slider round"></span>
-                </label>
-                <span>Metric</span>
-            </div>
-
-            <div class="input-group">
-                <label for="heightSlider">Height (<span id="heightUnitLabel">ft/in</span>):</label>
-                <div class="slider-container">
-                    <button class="slider-btn" data-slider="heightSlider" data-direction="decrease" aria-label="Decrease">−</button>
-                    <input type="range" id="heightSlider" min="48" max="96" step="0.1" value="70">
-                    <button class="slider-btn" data-slider="heightSlider" data-direction="increase" aria-label="Increase">+</button>
+        <div class="content-column">
+            <section class="card settings-card">
+                <div class="toggle-row">
+                    <div class="toggle-group">
+                        <span class="toggle-label">Male</span>
+                        <label class="switch">
+                            <input type="checkbox" id="genderToggle">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-label">Female</span>
+                    </div>
+                    <div class="toggle-group">
+                        <span class="toggle-label">Standard</span>
+                        <label class="switch">
+                            <input type="checkbox" id="unitToggle">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-label">Metric</span>
+                    </div>
                 </div>
-                <span id="heightValue" class="height-display">5' 10"</span>
-                <label for="heightInput" class="height-input-label">Or enter exact height (<span id="heightInputUnitLabel">inches</span>):</label>
-                <input type="number" id="heightInput" min="48" max="96" step="0.1" value="70.0" inputmode="decimal" aria-label="Exact height">
-            </div>
+            </section>
 
-            <div class="input-group">
-                <label for="weightSlider">Weight (<span id="weightUnitLabel">lbs</span>):</label>
-                <div class="slider-container">
-                    <button class="slider-btn" data-slider="weightSlider" data-direction="decrease" aria-label="Decrease">−</button>
-                    <input type="range" id="weightSlider" min="100" max="350" step="0.5" value="188">
-                    <button class="slider-btn" data-slider="weightSlider" data-direction="increase" aria-label="Increase">+</button>
+            <section class="card measurements-card">
+                <h2 class="section-title">Measurements</h2>
+
+                <div class="measure-field">
+                    <div class="measure-field__row">
+                        <label for="heightInput">Height <span class="unit-hint" id="heightUnitLabel">(ft/in)</span></label>
+                        <span id="heightValue" class="measure-field__formatted">5' 10"</span>
+                        <div class="measure-input-group">
+                            <input type="number" id="heightInput" class="measure-input" min="48" max="96" step="0.1" value="70.0" inputmode="decimal" aria-label="Height value">
+                            <span class="measure-input-unit" id="heightInputUnitLabel">in</span>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <button class="slider-btn" data-slider="heightSlider" data-direction="decrease" aria-label="Decrease height">−</button>
+                        <input type="range" id="heightSlider" min="48" max="96" step="0.1" value="70">
+                        <button class="slider-btn" data-slider="heightSlider" data-direction="increase" aria-label="Increase height">+</button>
+                    </div>
                 </div>
-                <span id="weightValue">188</span>
-            </div>
 
-            <div class="input-group">
-                <label for="goalWeightInput">Goal Weight (<span id="goalWeightUnitLabel">lbs</span>):</label>
-                <input type="number" id="goalWeightInput" min="80" max="400" step="0.5" placeholder="Enter goal weight">
-            </div>
-
-            <div class="input-group">
-                <label for="neckSlider">Neck Circumference (<span id="neckUnitLabel">inches</span>):</label>
-                <div class="slider-container">
-                    <button class="slider-btn" data-slider="neckSlider" data-direction="decrease" aria-label="Decrease">−</button>
-                    <input type="range" id="neckSlider" min="10" max="30" step="0.5" value="15">
-                    <button class="slider-btn" data-slider="neckSlider" data-direction="increase" aria-label="Increase">+</button>
+                <div class="measure-field">
+                    <div class="measure-field__row">
+                        <label for="weightInput">Weight</label>
+                        <span id="weightValue" class="measure-field__formatted measure-field__formatted--secondary" aria-hidden="true"></span>
+                        <div class="measure-input-group">
+                            <input type="number" id="weightInput" class="measure-input" min="100" max="350" step="0.5" value="188.0" inputmode="decimal" aria-label="Weight value">
+                            <span class="measure-input-unit" id="weightInputUnitLabel">lbs</span>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <button class="slider-btn" data-slider="weightSlider" data-direction="decrease" aria-label="Decrease weight">−</button>
+                        <input type="range" id="weightSlider" min="100" max="350" step="0.5" value="188">
+                        <button class="slider-btn" data-slider="weightSlider" data-direction="increase" aria-label="Increase weight">+</button>
+                    </div>
                 </div>
-                <span id="neckValue">15</span>
-            </div>
 
-            <div class="input-group">
-                <label for="waistSlider">Waist at naval (<span id="waistUnitLabel">inches</span>):</label>
-                <div class="slider-container">
-                    <button class="slider-btn" data-slider="waistSlider" data-direction="decrease" aria-label="Decrease">−</button>
-                    <input type="range" id="waistSlider" min="20" max="60" step="0.5" value="34">
-                    <button class="slider-btn" data-slider="waistSlider" data-direction="increase" aria-label="Increase">+</button>
+                <div class="measure-field">
+                    <div class="measure-field__row">
+                        <label for="goalWeightInput">Goal weight</label>
+                        <div class="measure-input-group measure-input-group--solo">
+                            <input type="number" id="goalWeightInput" class="measure-input" min="80" max="400" step="0.5" placeholder="Optional" inputmode="decimal" aria-label="Goal weight">
+                            <span class="measure-input-unit" id="goalWeightUnitLabel">lbs</span>
+                        </div>
+                    </div>
                 </div>
-                <span id="waistValue">34</span>
-            </div>
 
-            <div class="input-group" id="hipsGroup">
-                <label for="hipsSlider">Hip Circumference (<span id="hipsUnitLabel">inches</span>):</label>
-                <div class="slider-container">
-                    <button class="slider-btn" data-slider="hipsSlider" data-direction="decrease" aria-label="Decrease">−</button>
-                    <input type="range" id="hipsSlider" min="20" max="60" value="40" disabled>
-                    <button class="slider-btn" data-slider="hipsSlider" data-direction="increase" aria-label="Increase">+</button>
+                <div class="measure-field">
+                    <div class="measure-field__row">
+                        <label for="neckInput">Neck</label>
+                        <span id="neckValue" class="measure-field__formatted measure-field__formatted--secondary" aria-hidden="true"></span>
+                        <div class="measure-input-group">
+                            <input type="number" id="neckInput" class="measure-input" min="10" max="30" step="0.5" value="15.0" inputmode="decimal" aria-label="Neck circumference">
+                            <span class="measure-input-unit" id="neckInputUnitLabel">in</span>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <button class="slider-btn" data-slider="neckSlider" data-direction="decrease" aria-label="Decrease neck">−</button>
+                        <input type="range" id="neckSlider" min="10" max="30" step="0.5" value="15">
+                        <button class="slider-btn" data-slider="neckSlider" data-direction="increase" aria-label="Increase neck">+</button>
+                    </div>
                 </div>
-                <span id="hipsValue">0</span>
+
+                <div class="measure-field">
+                    <div class="measure-field__row">
+                        <label for="waistInput">Waist (navel)</label>
+                        <span id="waistValue" class="measure-field__formatted measure-field__formatted--secondary" aria-hidden="true"></span>
+                        <div class="measure-input-group">
+                            <input type="number" id="waistInput" class="measure-input" min="20" max="60" step="0.5" value="34.0" inputmode="decimal" aria-label="Waist circumference">
+                            <span class="measure-input-unit" id="waistInputUnitLabel">in</span>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <button class="slider-btn" data-slider="waistSlider" data-direction="decrease" aria-label="Decrease waist">−</button>
+                        <input type="range" id="waistSlider" min="20" max="60" step="0.5" value="34">
+                        <button class="slider-btn" data-slider="waistSlider" data-direction="increase" aria-label="Increase waist">+</button>
+                    </div>
+                </div>
+
+                <div class="measure-field" id="hipsGroup">
+                    <div class="measure-field__row">
+                        <label for="hipsInput">Hips</label>
+                        <span id="hipsValue" class="measure-field__formatted measure-field__formatted--secondary" aria-hidden="true"></span>
+                        <div class="measure-input-group">
+                            <input type="number" id="hipsInput" class="measure-input" min="20" max="60" step="0.5" value="40.0" inputmode="decimal" aria-label="Hip circumference" disabled>
+                            <span class="measure-input-unit" id="hipsInputUnitLabel">in</span>
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <button class="slider-btn" data-slider="hipsSlider" data-direction="decrease" aria-label="Decrease hips">−</button>
+                        <input type="range" id="hipsSlider" min="20" max="60" step="0.5" value="40" disabled>
+                        <button class="slider-btn" data-slider="hipsSlider" data-direction="increase" aria-label="Increase hips">+</button>
+                    </div>
+                </div>
+
+                <div class="measure-field measure-field--select">
+                    <label for="activityLevel">Activity level</label>
+                    <select id="activityLevel" class="measure-select">
+                        <option value="1.2">Sedentary (little/no exercise)</option>
+                        <option value="1.375">Lightly active (1–3 days/week)</option>
+                        <option value="1.55" selected>Moderately active (3–5 days/week)</option>
+                        <option value="1.725">Very active (6–7 days/week)</option>
+                        <option value="1.9">Extra active (hard job or 2× training)</option>
+                    </select>
+                </div>
+            </section>
+
+            <div class="results-grid">
+                <section class="card results-card ffmi-results">
+                    <h2 class="section-title">Composition</h2>
+                    <div class="result-group">
+                        <div class="result-item">
+                            <span class="result-label tooltip-trigger" data-tooltip="Fat Free Mass (FFM): The total mass of all non-fat components in your body.">Fat-free mass<span class="tooltip-text"></span></span>
+                            <span class="result-value"><span id="fatFreeMass">0</span> <span id="fatFreeMassUnit" class="result-unit">lbs</span></span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label tooltip-trigger" data-tooltip="Body Fat Percentage: Calculated using the U.S. Navy method.">Body fat<span class="tooltip-text"></span></span>
+                            <span class="result-value" id="bodyFatCalc">0</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label tooltip-trigger" data-tooltip="Body Mass Index (BMI): Underweight (&lt;18.5), Normal (18.5-24.9), Overweight (25-29.9), Obese (≥30).">BMI<span class="tooltip-text"></span></span>
+                            <span class="result-value"><span id="bmi">0</span> <span id="bmiCategory" class="badge"></span></span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label tooltip-trigger" data-tooltip="Fat-Free Mass Index (FFMI): Muscle mass relative to height.">FFMI<span class="tooltip-text"></span></span>
+                            <span class="result-value" id="ffmi">0</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label tooltip-trigger" data-tooltip="Normalized FFMI: FFMI adjusted for height.">Normalized FFMI<span class="tooltip-text"></span></span>
+                            <span class="result-value" id="adjustedFfmi">0</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card results-card tdee-results">
+                    <h2 class="section-title">Calories</h2>
+                    <div class="result-group">
+                        <div class="result-item">
+                            <span class="result-label tooltip-trigger" data-tooltip="Basal Metabolic Rate (BMR): Calories burned at rest.">BMR<span class="tooltip-text"></span></span>
+                            <span class="result-value"><span id="bmr">0</span> <span class="result-unit" id="bmrUnit">cal/day</span></span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label tooltip-trigger" data-tooltip="Total Daily Energy Expenditure (TDEE): Maintenance calories.">TDEE<span class="tooltip-text"></span></span>
+                            <span class="result-value"><span id="tdee">0</span> <span class="result-unit" id="tdeeUnit">cal/day</span></span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><span id="weightChangeLabel1">Weight loss</span> (1 lb/wk)</span>
+                            <span class="result-value"><span id="weightLoss1lb">0</span> <span class="result-unit" id="weightLoss1lbUnit">cal/day</span> <span id="weeksToGoal1lb" class="weeks-to-goal"></span></span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><span id="weightChangeLabel2">Weight loss</span> (2 lb/wk)</span>
+                            <span class="result-value"><span id="weightLoss2lb">0</span> <span class="result-unit" id="weightLoss2lbUnit">cal/day</span> <span id="weeksToGoal2lb" class="weeks-to-goal"></span></span>
+                        </div>
+                    </div>
+                </section>
             </div>
 
-            <div class="input-group">
-                <label for="activityLevel">Activity Level:</label>
-                <select id="activityLevel">
-                    <option value="1.2">Sedentary (little/no exercise)</option>
-                    <option value="1.375">Lightly Active (light exercise 1-3 days/week)</option>
-                    <option value="1.55" selected>Moderately Active (moderate exercise 3-5 days/week)</option>
-                    <option value="1.725">Very Active (hard exercise 6-7 days/week)</option>
-                    <option value="1.9">Extra Active (very hard exercise, physical job)</option>
-                </select>
-            </div>
+            <section class="card ffmi-scale-card ffmi-horizontal">
+                <h2 class="section-title">FFMI scale</h2>
+                <div class="ffmi-scale" id="ffmiScaleMale" aria-hidden="false">
+                    <div class="ffmi-scale__track">
+                        <div class="ffmi-indicator" id="ffmiIndicatorMale" aria-hidden="true"></div>
+                        <div class="ffmi-labels-below">
+                            <span>Skinny</span><span>Average</span><span>Fat</span><span>Int. Gymgoer</span><span>Adv. Gymgoer</span><span>Bodybuilder</span>
+                        </div>
+                    </div>
+                    <div class="ffmi-numbers-below">
+                        <span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span>
+                    </div>
+                </div>
+                <div class="ffmi-scale" id="ffmiScaleFemale" aria-hidden="true">
+                    <div class="ffmi-scale__track">
+                        <div class="ffmi-indicator" id="ffmiIndicatorFemale" aria-hidden="true"></div>
+                        <div class="ffmi-labels-below">
+                            <span>Skinny</span><span>Average</span><span>Fat</span><span>Int. Gym</span><span>Adv. Gym</span><span>Bodybuilder</span>
+                        </div>
+                    </div>
+                    <div class="ffmi-numbers-below">
+                        <span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <div class="ffmi-results">
-            <h2>FFMI, BMI, and Body Fat</h2>
-            <div class="result-group">
-                <p><strong class="tooltip-trigger" data-tooltip="Fat Free Mass (FFM): The total mass of all non-fat components in your body.">Fat Free Mass:<span class="tooltip-text"></span></strong> <span id="fatFreeMass">0</span> <span id="fatFreeMassUnit">lbs</span></p>
-                <p><strong class="tooltip-trigger" data-tooltip="Body Fat Percentage: Calculated using the U.S. Navy method.">Body Fat:<span class="tooltip-text"></span></strong> <span id="bodyFatCalc">0</span></p>
-                <p><strong class="tooltip-trigger" data-tooltip="Body Mass Index (BMI): Underweight (&lt;18.5), Normal (18.5-24.9), Overweight (25-29.9), Obese (≥30).">BMI:<span class="tooltip-text"></span></strong> <span id="bmi">0</span> <span id="bmiCategory"></span></p>
-                <p><strong class="tooltip-trigger" data-tooltip="Fat-Free Mass Index (FFMI): Muscle mass relative to height.">FFMI:<span class="tooltip-text"></span></strong> <span id="ffmi">0</span></p>
-                <p><strong class="tooltip-trigger" data-tooltip="Normalized FFMI: FFMI adjusted for height.">Normalized FFMI:<span class="tooltip-text"></span></strong> <span id="adjustedFfmi">0</span></p>
-            </div>
-        </div>
-
-        <div class="tdee-results">
-            <h2>TDEE and Weight Loss Calories</h2>
-            <div class="result-group">
-                <p><strong class="tooltip-trigger" data-tooltip="Basal Metabolic Rate (BMR): Calories burned at rest.">BMR:<span class="tooltip-text"></span></strong> <span id="bmr">0</span> <span id="bmrUnit">calories/day</span></p>
-                <p><strong class="tooltip-trigger" data-tooltip="Total Daily Energy Expenditure (TDEE): Maintenance calories.">TDEE:<span class="tooltip-text"></span></strong> <span id="tdee">0</span> <span id="tdeeUnit">calories/day</span></p>
-                <p><strong><span id="weightChangeLabel1">Weight Loss</span> (1 lb/week):</strong> <span id="weightLoss1lb">0</span> <span id="weightLoss1lbUnit">calories/day</span> <span id="weeksToGoal1lb" class="weeks-to-goal"></span></p>
-                <p><strong><span id="weightChangeLabel2">Weight Loss</span> (2 lb/week):</strong> <span id="weightLoss2lb">0</span> <span id="weightLoss2lbUnit">calories/day</span> <span id="weeksToGoal2lb" class="weeks-to-goal"></span></p>
-            </div>
-        </div>
-
-        <div class="ffmi-horizontal">
-            <div class="ffmi-scale" id="ffmiScaleMale" aria-hidden="false">
-                <div class="ffmi-indicator" id="ffmiIndicatorMale"></div>
-                <div class="ffmi-labels-below">
-                    <span>Skinny</span><span>Average</span><span>Fat</span><span>Int. Gymgoer</span><span>Adv. Gymgoer</span><span>Bodybuilder</span>
-                </div>
-                <div class="ffmi-numbers-below">
-                    <span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span>
-                </div>
-            </div>
-            <div class="ffmi-scale" id="ffmiScaleFemale" aria-hidden="true">
-                <div class="ffmi-indicator" id="ffmiIndicatorFemale"></div>
-                <div class="ffmi-labels-below">
-                    <span>Skinny</span><span>Average</span><span>Fat</span><span>Int. Gym</span><span>Adv. Gym</span><span>Bodybuilder</span>
-                </div>
-                <div class="ffmi-numbers-below">
-                    <span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
-                </div>
-            </div>
-        </div>
-        </div>
-
-        <div class="history-panel">
-            <h2 class="history-title">History</h2>
+        <aside class="history-panel card">
+            <h2 class="section-title history-title">History</h2>
             <p class="history-hint">Select a day to view that snapshot.</p>
             <div class="history-list" id="historyList"></div>
-        </div>
+        </aside>
     </div>
 
     <script type="module" src="script.js"></script>
