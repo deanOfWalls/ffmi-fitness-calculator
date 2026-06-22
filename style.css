@@ -724,6 +724,24 @@ body.dark .ffmi-indicator {
     margin-top: 2px;
 }
 
+.bmr-floor-warning {
+    display: block;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.bmr-floor-warning--high,
+.weight-loss-cal--below-floor {
+    color: #dc3545;
+}
+
+body.dark .bmr-floor-warning--high,
+body.dark .weight-loss-cal--below-floor {
+    color: #f87171;
+}
+
 .result-group {
     display: flex;
     flex-direction: column;

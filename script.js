@@ -535,11 +535,45 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         document.getElementById('bmr').textContent = Math.round(metrics.bmr);
+        document.getElementById('bmrMinIntake').textContent = metrics.bmrMinimumIntake;
         document.getElementById('tdee').textContent = Math.round(metrics.tdee);
         document.getElementById('weightLoss1lb').textContent = metrics.cal1;
         document.getElementById('weightLoss2lb').textContent = metrics.cal2;
 
+        const isLoss = metrics.weightChangeMode === 'loss';
+        updateWeightLossFloorWarning(
+            'weightLoss1lb',
+            'bmrFloorWarning1lb',
+            metrics.cal1,
+            metrics.bmrMinimumIntake,
+            isLoss
+        );
+        updateWeightLossFloorWarning(
+            'weightLoss2lb',
+            'bmrFloorWarning2lb',
+            metrics.cal2,
+            metrics.bmrMinimumIntake,
+            isLoss
+        );
+
         updateFFMIIndicator(isFemale, metrics.ffmiIndicatorPosition);
+    }
+
+    function updateWeightLossFloorWarning(calorieId, warningId, intake, minIntake, isLoss) {
+        const calEl = document.getElementById(calorieId);
+        const warningEl = document.getElementById(warningId);
+        if (!calEl || !warningEl) return;
+
+        if (!isLoss || intake >= minIntake) {
+            calEl.classList.remove('weight-loss-cal--below-floor');
+            warningEl.textContent = '';
+            warningEl.className = 'bmr-floor-warning';
+            return;
+        }
+
+        calEl.classList.add('weight-loss-cal--below-floor');
+        warningEl.textContent = `Below minimum (${minIntake} cal/day)`;
+        warningEl.className = 'bmr-floor-warning bmr-floor-warning--high';
     }
 
     function updateFFMIIndicator(isFemale, indicatorPosition) {

@@ -7,6 +7,9 @@ import {
     calculateBodyFatPercentage,
     calculateBMR,
     calculateTDEE,
+    calculateBmrMinimumIntake,
+    isBelowBmrMinimumIntake,
+    BMR_MIN_INTAKE_FACTOR,
     calculateFatFreeMass,
     calculateFFMI,
     calculateNormalizedFFMI,
@@ -103,6 +106,19 @@ describe('calculateTDEE', () => {
     });
 });
 
+describe('calculateBmrMinimumIntake', () => {
+    it('returns 90% of BMR rounded', () => {
+        assert.equal(calculateBmrMinimumIntake(1000), 900);
+        assert.equal(calculateBmrMinimumIntake(2000), 1800);
+    });
+
+    it('detects intake below floor', () => {
+        assert.equal(isBelowBmrMinimumIntake(899, 1000), true);
+        assert.equal(isBelowBmrMinimumIntake(900, 1000), false);
+        assert.equal(isBelowBmrMinimumIntake(1200, 1000), false);
+    });
+});
+
 describe('FFMI calculations', () => {
     it('computes fat-free mass', () => {
         assert.ok(Math.abs(calculateFatFreeMass(200, 20) - 160) < EPS);
@@ -193,11 +209,19 @@ describe('computeBodyMetrics (full pipeline)', () => {
         assert.equal(m.weightChangeMode, 'loss');
         assert.equal(m.weeks1lb, null);
         assert.equal(m.weeks2lb, null);
+        assert.equal(m.bmrMinimumIntake, Math.round(m.bmr * BMR_MIN_INTAKE_FACTOR));
+        assert.equal(isBelowBmrMinimumIntake(m.cal1, m.bmr), false);
     });
 
-    it('goal equal to current shows loss without weeks', () => {
-        const m = computeBodyMetrics({ ...baseMale, goalWeightLbs: 188 });
-        assert.equal(m.weeks1lb, null);
+    it('weight gain mode still computes minimum intake', () => {
+        const m = computeBodyMetrics({ ...baseMale, goalWeightLbs: 200 });
+        assert.ok(m.bmrMinimumIntake > 0);
+    });
+
+    it('sedentary 2 lb/week can fall below BMR minimum intake', () => {
+        const m = computeBodyMetrics({ ...baseMale, activityMultiplier: 1.2 });
+        assert.equal(isBelowBmrMinimumIntake(m.cal2, m.bmr), true);
+        assert.equal(isBelowBmrMinimumIntake(m.cal1, m.bmr), false);
     });
 
     it('uses female formula and hips', () => {

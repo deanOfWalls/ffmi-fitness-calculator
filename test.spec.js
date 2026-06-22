@@ -205,6 +205,33 @@ test.describe('FFMI Calculator – calculations', () => {
     expect(tdee).toBeGreaterThan(bmr);
   });
 
+  test('shows BMR minimum intake (BMR − 10%)', async ({ page }) => {
+    const bmr = parseInt(await page.locator('#bmr').textContent(), 10);
+    const minIntake = parseInt(await page.locator('#bmrMinIntake').textContent(), 10);
+    expect(minIntake).toBe(Math.round(bmr * 0.9));
+  });
+
+  test('2 lb/week warns when below BMR minimum on sedentary activity', async ({ page }) => {
+    await page.locator('#activityLevel').selectOption('1.2');
+    await page.waitForTimeout(150);
+    await expect(page.locator('#bmrFloorWarning2lb')).toContainText('Below minimum');
+    await expect(page.locator('#bmrFloorWarning2lb')).toHaveClass(/bmr-floor-warning--high/);
+    await expect(page.locator('#weightLoss2lb')).toHaveClass(/weight-loss-cal--below-floor/);
+    await expect(page.locator('#bmrFloorWarning1lb')).toHaveText('');
+  });
+
+  test('weight gain mode hides BMR floor warnings', async ({ page }) => {
+    await page.locator('#weightSlider').fill('160');
+    await page.waitForTimeout(100);
+    await page.locator('#goalWeightInput').fill('180');
+    await page.locator('#goalWeightInput').blur();
+    await page.waitForTimeout(200);
+    await expect(page.locator('#bmrFloorWarning1lb')).toHaveText('');
+    await expect(page.locator('#bmrFloorWarning2lb')).toHaveText('');
+    await expect(page.locator('#weightLoss1lb')).not.toHaveClass(/weight-loss-cal--below-floor/);
+    await expect(page.locator('#weightLoss2lb')).not.toHaveClass(/weight-loss-cal--below-floor/);
+  });
+
   test('weight loss mode when current weight > goal weight', async ({ page }) => {
     await page.locator('#weightSlider').fill('200');
     await page.waitForTimeout(100);

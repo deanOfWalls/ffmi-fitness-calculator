@@ -181,16 +181,28 @@
                             <span class="result-value"><span id="bmr">0</span> <span class="result-unit" id="bmrUnit">cal/day</span></span>
                         </div>
                         <div class="result-item">
+                            <span class="result-label tooltip-trigger" data-tooltip="Don't eat below this for long periods. For faster loss beyond a 10% BMR deficit, add exercise instead of cutting more calories.">Min. intake (BMR − 10%)<span class="tooltip-text"></span></span>
+                            <span class="result-value"><span id="bmrMinIntake">0</span> <span class="result-unit">cal/day</span></span>
+                        </div>
+                        <div class="result-item">
                             <span class="result-label tooltip-trigger" data-tooltip="Total Daily Energy Expenditure (TDEE): Maintenance calories.">TDEE<span class="tooltip-text"></span></span>
                             <span class="result-value"><span id="tdee">0</span> <span class="result-unit" id="tdeeUnit">cal/day</span></span>
                         </div>
                         <div class="result-item">
                             <span class="result-label"><span id="weightChangeLabel1">Weight loss</span> (1 lb/wk)</span>
-                            <span class="result-value"><span id="weightLoss1lb">0</span> <span class="result-unit" id="weightLoss1lbUnit">cal/day</span> <span id="weeksToGoal1lb" class="weeks-to-goal"></span></span>
+                            <span class="result-value">
+                                <span id="weightLoss1lb">0</span> <span class="result-unit" id="weightLoss1lbUnit">cal/day</span>
+                                <span id="bmrFloorWarning1lb" class="bmr-floor-warning"></span>
+                                <span id="weeksToGoal1lb" class="weeks-to-goal"></span>
+                            </span>
                         </div>
                         <div class="result-item">
                             <span class="result-label"><span id="weightChangeLabel2">Weight loss</span> (2 lb/wk)</span>
-                            <span class="result-value"><span id="weightLoss2lb">0</span> <span class="result-unit" id="weightLoss2lbUnit">cal/day</span> <span id="weeksToGoal2lb" class="weeks-to-goal"></span></span>
+                            <span class="result-value">
+                                <span id="weightLoss2lb">0</span> <span class="result-unit" id="weightLoss2lbUnit">cal/day</span>
+                                <span id="bmrFloorWarning2lb" class="bmr-floor-warning"></span>
+                                <span id="weeksToGoal2lb" class="weeks-to-goal"></span>
+                            </span>
                         </div>
                     </div>
                 </section>
